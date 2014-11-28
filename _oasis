@@ -1,0 +1,14 @@
+OASISFormat: 0.4
+Name:        xmltoty
+Version:     0.1
+Synopsis:    Take a .html or .svg file and output a .ml file containing a
+  TyXML tree.
+Authors:     Eyyüb SARI (Shab Team)
+License:     LGPL
+
+Executable xmltoty
+  Path:       .
+  BuildDepends: xmlm, pprint
+  BuildTools: ocamlbuild
+  MainIs:     bin/main.ml
+  
