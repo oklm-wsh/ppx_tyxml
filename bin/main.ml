@@ -25,6 +25,111 @@ let extract_el name l =
   | [el], l -> el, l
   | _ -> failwith ("Must have only one " ^ name)
 
+let attr_to_ml tag_name ((_, name), value) =
+  let autocomplete_attr_to_ml = function
+    | "on" -> "`On"
+    | "off" -> "`Off"
+    | _ -> failwith "Unknown autocomplete attr value"
+  in
+  let ml_attr_value = 
+    match name with
+    | "autocomplete" -> autocomplete_attr_to_ml value
+    | "async" -> "`Async"
+    | "autofocus" -> "`Autofocus"
+    | "autoplay" -> "`Autoplay"
+    | "muted" -> "`Muted"
+    | "controls" -> "`Muted"
+    | "novalidate" when tag_name = "form" -> "`Formnovalidate" (* formnovalidate and novalidate, issue here *)
+    | "novalidate" -> "`Novalidate"
+    | "hidden" -> "`Hidden"
+    | "ismap" -> "`Ismap"
+    | "loop" -> "`Loop"
+    | "open" -> "`Open"
+    | "pubdate" -> "`Pubdate"
+    | "required" -> "`Required"
+    | "reversed" -> "`Reversed"
+    | "scoped" -> "`Scoped"
+    | "seamless" -> "`Seamless"
+    | "checked" -> "`Checked"
+    | "multiple" -> "`Multiple"
+    | "selected" -> "`Selected"
+    | "disabled" -> "`Disabled"
+    | "readonly" -> "`ReadOnly"
+    | "defer" -> "`Defer"
+    | "onabort"
+    | "onafterprint"
+    | "onbeforeprint"
+    | "onbeforeunload"
+    | "onblur"
+    | "oncanplay"
+    | "oncanplaythrough"
+    | "onchange"
+    | "ondurationchange"
+    | "onemptied"
+    | "onended"
+    | "onerror"
+    | "onfocus"
+    | "onformchange"
+    | "onforminput"
+    | "onhashchange"
+    | "oninput"
+    | "oninvalid"
+    | "onmousewheel"
+    | "onoffline"
+    | "ononline"
+    | "onpause"
+    | "onplay"
+    | "onplaying"
+    | "onpagehide"
+    | "onpageshow"
+    | "onpopstate"
+    | "onprogress"
+    | "onratechange"
+    | "onreadystatechange"
+    | "onredo"
+    | "onresize"
+    | "onscroll"
+    | "onseeked"
+    | "onseeking"
+    | "onselect"
+    | "onshow"
+    | "onstalled"
+    | "onstorage"
+    | "onsubmit"
+    | "onsuspend"
+    | "ontimeupdate"
+    | "onundo"
+    | "onunload"
+    | "onvolumechange"
+    | "onwaiting"
+    | "onload"
+    | "onloadeddata"
+    | "onloadedmetadata"
+    | "onloadstart"
+    | "onmessage"
+    | "onclick"
+    | "oncontextmenu"
+    | "ondblclick"
+    | "ondrag"
+    | "ondragend"
+    | "ondragenter"
+    | "ondragleave"
+    | "ondragover"
+    | "ondragstart"
+    | "ondrop"
+    | "onmousedown"
+    | "onmouseup"
+    | "onmouseover"
+    | "onmousemove"
+    | "onmouseout"
+    | "onkeypress"
+    | "onkeydown"
+    | "onkeyup"
+    | "version"
+    | "charset" -> value
+    | _ -> failwith "Unkown attr."
+  in string ("a_" ^ name ^ " " ^ "(" ^ value ^ ")")
+
 let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
@@ -32,6 +137,7 @@ let rec xml_to_ml = function
     string ("(pcdata \"" ^ s ^ "\"")
 
 and tag_to_ml ((_, name), attrs) childs =
+  let _ = List.map (attr_to_ml name) attrs in
   let fun_to_ml =
     match name with
     | "html" -> html_to_ml
