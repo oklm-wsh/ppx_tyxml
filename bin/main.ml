@@ -1,6 +1,9 @@
 open PPrint
 
 (* Known issues : <tag> xmlm throws error *)
+(*                formnovalidate output a_novalidate *)
+(*                enctyp output a_enctyp (should be a_formenctyp with form tag,
+                  remind to check issue with form *)
 
 type t = [
   | `El of Xmlm.tag * t list
@@ -56,6 +59,22 @@ let attr_to_ml tag_name ((_, name), value) =
     | "disabled" -> "`Disabled"
     | "readonly" -> "`ReadOnly"
     | "defer" -> "`Defer"
+    | "mediagroup"
+    | "challenge"
+    | "contenteditable"
+    | "form"
+    | "enctyp"
+    | "target"
+    | "keytype"
+    | "list"
+    | "pattern"
+    | "placeholder"
+    | "radiogroup"
+    | "srclang"
+    | "class"
+    | "id"
+    | "title"
+    (* | xml-lang *)
     | "onabort"
     | "onafterprint"
     | "onbeforeprint"
@@ -126,7 +145,26 @@ let attr_to_ml tag_name ((_, name), value) =
     | "onkeydown"
     | "onkeyup"
     | "version"
-    | "charset" -> "\"" ^ value ^ "\""
+    | "charset"
+    | "hreflang"
+    (* | mime-type*) 
+    | "datetime"
+    | "for"
+    | "name"
+    (* | text-value *)
+    | "value"
+    | "label"
+    | "axis"
+    | "summary"
+    | "datapagesize"
+    | "alt" 
+    | "usemap"
+    | "codetype" 
+    | "target"
+    | "content"
+(* http_equiv *)
+    | "style"
+    | "property" -> "\"" ^ value ^ "\""
     | _ -> failwith "Unkown attr."
   in string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
 
