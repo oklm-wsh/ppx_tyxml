@@ -126,15 +126,23 @@ let attr_to_ml tag_name ((_, name), value) =
     | "onkeydown"
     | "onkeyup"
     | "version"
-    | "charset" -> value
+    | "charset" -> "\"" ^ value ^ "\""
     | _ -> failwith "Unkown attr."
-  in string ("a_" ^ name ^ " " ^ "(" ^ value ^ ")")
+  in string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
+
+let attrs_to_ml tag_name = function
+  | [] -> string "~a:[]"
+  | attrs ->
+     let ml_attrs = List.map (attr_to_ml tag_name) attrs in
+     string "~a:[" ^^ List.fold_left (fun a b -> a ^^ string ";" ^^ b)
+				     (List.hd ml_attrs) (List.tl ml_attrs)
+     ^^ string "]\n"
 
 let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
   | `Data s ->
-    string ("(pcdata \"" ^ s ^ "\"")
+    string ("(pcdata \"" ^ s ^ "\")")
 
 and tag_to_ml ((_, name), attrs) childs =
   let _ = List.map (attr_to_ml name) attrs in
@@ -234,25 +242,31 @@ and tag_to_ml ((_, name), attrs) childs =
     | _ -> failwith ("Unknown tag " ^ name ^ ".")
   in fun_to_ml attrs childs
 
-and childs_to_ml childs = 
-  string "[\n" ^^
-  (List.map xml_to_ml childs
-   |> List.fold_left (fun a b -> a ^^ string ";\n" ^^ b) (string ""))
-  ^^ string "]\n"
-
+and childs_to_ml = function
+  | [] -> string "[]"
+  | childs ->  
+     let ml_childs = List.map xml_to_ml childs in 
+     string "[\n" ^^
+       List.fold_left (fun a b -> a ^^ string ";\n" ^^ b)
+		      (List.hd ml_childs) (List.tl ml_childs)
+       ^^ string "]\n"
+		      
 and nullary_to_ml name attrs = function
   | [] ->
-    string "(" ^^ string name ^^ string " ())\n"
+    string "(" ^^ string name ^^ string " " 
+    ^^ attrs_to_ml name attrs ^^ string " " ^^ string " ())\n"
   | _ -> failwith "Must not have childs."
 
 and unary_to_ml name attrs = function
   | [x] ->
-    string "(" ^^ string name ^^ string " "
+    string "(" ^^ string name ^^ string " " 
+    ^^ attrs_to_ml name attrs ^^ string " " ^^ string " "
     ^^ xml_to_ml x ^^ string ")\n"
   | _ -> failwith "Must have only one child."
 
 and star_to_ml name attrs childs =
   string "(" ^^ string name ^^ string " "
+  ^^ string " " ^^ attrs_to_ml name attrs ^^ string " " 
   ^^ childs_to_ml childs ^^ string ")\n"
 
 and html_to_ml attrs childs =
@@ -260,6 +274,7 @@ and html_to_ml attrs childs =
   let body, childs = extract_el "body" childs in
   if List.length childs = 0 then
     string "(html " ^^ xml_to_ml head 
+    ^^ string " " ^^ string " " ^^ attrs_to_ml "html" attrs 
     ^^ string " " ^^ xml_to_ml body ^^ string ")\n"
   else
     failwith "<html> must only have <head> and <body> as childs"
@@ -267,6 +282,7 @@ and html_to_ml attrs childs =
 and head_to_ml attrs childs = 
   let title, childs = extract_el "title" childs in
   string "(head " ^^ xml_to_ml title ^^ string " "
+  ^^ string " " ^^ attrs_to_ml "head" attrs ^^ string " " 
   ^^ childs_to_ml childs ^^ string ")\n"
 
 let _ =
