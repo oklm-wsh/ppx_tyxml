@@ -64,7 +64,6 @@ let attr_to_ml tag_name ((_, name), value) =
     | "contenteditable"
     | "form"
     | "enctyp"
-    | "target"
     | "keytype"
     | "list"
     | "pattern"
@@ -165,6 +164,27 @@ let attr_to_ml tag_name ((_, name), value) =
 (* http_equiv *)
     | "style"
     | "property" -> "\"" ^ value ^ "\""
+    | "high"
+    | "low"
+    | "max"
+    (* | "input_max" *)
+    | "min"
+    (* | "input_min" *)
+    | "optimum"
+    | "span"
+    | "start"
+    | "step"
+    | "tabindex"
+    | "cols"
+    | "maxlength"
+    | "rows"
+    | "size"
+(* | "int_value" *)
+(* | "float_value" *)
+    | "colspan"
+    | "rowspan"
+    | "height"
+    | "width" -> value
     | _ -> failwith "Unkown attr."
   in string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
 
