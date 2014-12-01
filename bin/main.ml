@@ -29,14 +29,148 @@ let extract_el name l =
   | _ -> failwith ("Must have only one " ^ name)
 
 let attr_to_ml tag_name ((_, name), value) =
-  let autocomplete_attr_to_ml = function
+  let autocomplete_value_to_ml = function
     | "on" -> "`On"
     | "off" -> "`Off"
     | _ -> failwith "Unknown autocomplete attr value"
   in
+  let crossorigin_value_to_ml = function
+    | "anonymous" -> "`Anonymous"
+    | "use-credentials" -> "`Use_credentials"
+    | _ -> failwith "Unknown crossorigin attr value"
+  in
+  let dir_value_to_ml = function
+    | "lrt" -> "`Lrt"
+    | "rtl" -> "`Rtl"
+    | _ -> failwith "Unknown dir attr value"
+  in
+  let formmethod_value_to_ml value =
+    match String.lowercase value with
+    | "delete" -> "`Delete"
+    | "get" -> "`Get"
+    | "post" -> "`Post"
+    | "put" -> "`Put"
+    | _ -> failwith "Unknown formmethod or method attr value"
+  in
+  let method_value_to_ml = formmethod_value_to_ml in
+  let preload_value_to_ml = function
+    | "audio" -> "`Audio"
+    | "metadata" -> "`Metadata"
+    | "none" -> "`None"
+    | _ -> failwith "Unknown preload attr value"
+  in
+  let wrap_value_to_ml = function
+    | "hard" -> "`Hard"
+    | "soft" -> "`Soft"
+    | _ -> failwith "Unkown wrap attr value"
+  in
+  let xmlns_value_to_ml = function
+    | "http://www.w3.org/1999/xhtml" -> "`W3_org_1999_xhtml"
+    | _ -> failwith "xmls value should be http://www.w3.org/1999/xhtml"
+  in
+  let input_type_value_to_ml = function
+    | "button" -> "`Button"
+    | "checkbox" -> "`Checkbox"
+    | "color" -> "`Color"
+    | "date" -> "`Date"
+    | "datetime" -> "`Datetime"
+    | "datetime-local" -> "`Datetime_local"
+    | "email" -> "`Email"
+    | "file" -> "`File"
+    | "hidden" -> "`Hidden"
+    | "image" -> "`Image"
+    | "month" -> "`Month"
+    | "number" -> "`Number"
+    | "password" -> "`Password"
+    | "radio" -> "`Radio"
+    | "range" -> "`Range"
+    | "reset" -> "`Reset"
+    | "search" -> "`Search"
+    | "submit" -> "`Submit"
+    | "tel" -> "`Tel"
+    | "text" -> "`Text"
+    | "time" -> "`Time"
+    | "url" -> "`Url"
+    | "week" -> "`Week"
+    | _ -> failwith "Unknown input type value attr"
+  in
+  let button_type_value_to_ml = function
+    | "button" -> "`Button"
+    | "reset" -> "`Reset"
+    | "submit" -> "`Submit"
+    | _ -> failwith "Unknown button type value attr"
+  in
+  let command_type_value_to_ml = function
+    | "checkbox" -> "`Checkbox"
+    | "command" -> "`Command"
+    | "radio" -> "`Radio"
+    | _ -> failwith "Unknown command type value attr"
+  in
+  let menu_type_value_to_ml = function
+    | "context" -> "`Context"
+    | "toolbar" -> "`Toolbar"
+    | _ -> failwith "Unknown menu type value attr"
+  in
+  let align_value_to_ml = function
+    | "char" -> "`Char"
+    | "justify" -> "`Justify"
+    | "left" -> "`Left"
+    | "right" -> "`Right"
+    | _ -> failwith "Unknown align value attr"
+  in
+  let scope_value_to_ml = function
+    | "col" -> "`Col"
+    | "colgroup" -> "`Colgroup"
+    | "row" -> "`Row"
+    | "rowgroup" -> "`Rowgroup"
+    | _ -> failwith "Unknown scope value attr"
+  in
+  let rules_value_to_ml = function
+    | "all" -> "`All"
+    | "cols" -> "`Cols"
+    | "groups" -> "`Groups"
+    | "none" -> "`None"
+    | "rows" -> "`Rows"
+    | _ -> failwith "Unknown rules value attr"
+  in
+  let shape_value_to_ml = function
+    | "circle" -> "`Circle"
+    | "default" -> "`Default"
+    | "poly" -> "`Poly"
+    | "rect" -> "`Rect"
+    | _ -> failwith "Unknown shape value attr"
+  in
+  let frameborder_value_to_ml = function
+    | "one" -> "`One"
+    | "zero" -> "`Zero"
+    | _ -> failwith "Unknown frameborder value attr"
+  in
+  let scrolling_value_to_ml = function
+    | "auto" -> "`Auto"
+    | "no" -> "`No"
+    | "yes" -> "`Yes"
+    | _ -> failwith "Unknown scrolling value attr"
+  in
   let ml_attr_value = 
     match name with
-    | "autocomplete" -> autocomplete_attr_to_ml value
+    | "autocomplete" -> autocomplete_value_to_ml value
+    | "crossorigin" -> crossorigin_value_to_ml value
+    | "dir" -> dir_value_to_ml value
+    | "formmethod" -> formmethod_value_to_ml value
+    | "method" -> method_value_to_ml value
+    | "preload" -> preload_value_to_ml value
+    | "wrap" -> wrap_value_to_ml value
+    | "xmlns" -> xmlns_value_to_ml value
+    | "type" when tag_name = "input" -> input_type_value_to_ml value
+    | "type" when tag_name = "button" -> button_type_value_to_ml value
+    | "type" when tag_name = "command" -> command_type_value_to_ml value
+    | "type" when tag_name = "menu" -> menu_type_value_to_ml value
+    | "align" -> align_value_to_ml value
+    | "scope" -> scope_value_to_ml value
+    | "rules" -> rules_value_to_ml value
+    | "shape" -> shape_value_to_ml value
+    | "frameborder" -> frameborder_value_to_ml value
+    | "scrolling" -> scrolling_value_to_ml value
     | "async" -> "`Async"
     | "autofocus" -> "`Autofocus"
     | "autoplay" -> "`Autoplay"
@@ -185,6 +319,14 @@ let attr_to_ml tag_name ((_, name), value) =
     | "rowspan"
     | "height"
     | "width" -> value
+    | "action" (* formaction too *)
+    | "icon"
+    | "poster"
+    | "manifest"
+    | "cite"
+    | "href"
+    | "src"
+    | "data" -> "(uri_of_string \"" ^ value ^ "\")"
     | _ -> failwith "Unkown attr."
   in string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
 
