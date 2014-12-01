@@ -28,6 +28,15 @@ let extract_el name l =
   | [el], l -> el, l
   | _ -> failwith ("Must have only one " ^ name)
 
+let extract_attrs name =
+  List.partition
+    (fun ((_, n), _) -> n = name)
+
+let extract_attr name l =
+  match extract_attrs name l with
+  | [attr], l -> attr, l
+  | _ -> failwith ("Must have only one " ^ name ^ "attr.")
+
 let attr_to_ml tag_name ((_, name), value) =
   let autocomplete_value_to_ml = function
     | "on" -> "`On"
@@ -151,6 +160,31 @@ let attr_to_ml tag_name ((_, name), value) =
     | "yes" -> "`Yes"
     | _ -> failwith "Unknown scrolling value attr"
   in
+  let rel_value_to_ml = function
+    | "alternate" -> "`Alternate"
+    | "archives" -> "`Archives"
+    | "author" -> "`Author"
+    | "bookmark" -> "`Bookmark"
+    | "external" -> "`External"
+    | "first" -> "`First"
+    | "help" -> "`Help"
+    | "icon" -> "`Icon"
+    | "index" -> "`Index"
+    | "last" -> "`Last"
+    | "license" -> "`License"
+    | "next" -> "`Next"
+    | "nofollow" -> "`Nofollow"
+    | "noreferrer" -> "`Noreferrer"
+    | "pingback" -> "`Pingback"
+    | "prefetch" -> "`Prefetch"
+    | "prev" -> "`Prev"
+    | "search" -> "`Search"
+    | "sidebar" -> "`Sidebar"
+    | "stylesheet" -> "`Stylesheet"
+    | "tag" -> "`Tag"
+    | "up" -> "`Up"
+    | other -> "`Other \"" ^ other ^ "\""
+  in
   let ml_attr_value = 
     match name with
     | "autocomplete" -> autocomplete_value_to_ml value
@@ -171,6 +205,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "shape" -> shape_value_to_ml value
     | "frameborder" -> frameborder_value_to_ml value
     | "scrolling" -> scrolling_value_to_ml value
+    | "rel" -> rel_value_to_ml value
     | "async" -> "`Async"
     | "autofocus" -> "`Autofocus"
     | "autoplay" -> "`Autoplay"
@@ -280,7 +315,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "version"
     | "charset"
     | "hreflang"
-    (* | mime-type*) 
+    | "type"     (* WARNING !!! should be | mime-type*) 
     | "datetime"
     | "for"
     | "name"
@@ -327,13 +362,20 @@ let attr_to_ml tag_name ((_, name), value) =
     | "href"
     | "src"
     | "data" -> "(uri_of_string \"" ^ value ^ "\")"
-    | _ -> failwith "Unkown attr."
-  in string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
+    | _ -> failwith ("Unkown attr " ^ name ^ ".")
+  in name, ml_attr_value
+
+let a_attr_to_ml (name, ml_attr_value) = 
+  string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
+
+let param_attr_to_ml (name, ml_attr_value) =
+  string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
 
 let attrs_to_ml tag_name = function
   | [] -> string "~a:[]"
   | attrs ->
-     let ml_attrs = List.map (attr_to_ml tag_name) attrs in
+     let ml_attrs = List.map (attr_to_ml tag_name) attrs 
+                    |> List.map a_attr_to_ml in
      string "~a:[" ^^ List.fold_left (fun a b -> a ^^ string ";" ^^ b)
 				     (List.hd ml_attrs) (List.tl ml_attrs)
      ^^ string "]\n"
@@ -350,6 +392,8 @@ and tag_to_ml ((_, name), attrs) childs =
     match name with
     | "html" -> html_to_ml
     | "head" -> head_to_ml
+    | "link" -> link_to_ml
+    | "img" -> img_to_ml
     | "base"
     | "hr"
     | "wbr"
@@ -462,7 +506,7 @@ and unary_to_ml name attrs = function
     string "(" ^^ string name ^^ string " " 
     ^^ attrs_to_ml name attrs ^^ string " " ^^ string " "
     ^^ xml_to_ml x ^^ string ")\n"
-  | _ -> failwith "Must have only one child."
+  | _ -> failwith (name ^ " Must have only one child.")
 
 and star_to_ml name attrs childs =
   string "(" ^^ string name ^^ string " "
@@ -484,6 +528,28 @@ and head_to_ml attrs childs =
   string "(head " ^^ xml_to_ml title ^^ string " "
   ^^ string " " ^^ attrs_to_ml "head" attrs ^^ string " " 
   ^^ childs_to_ml childs ^^ string ")\n"
+
+and link_to_ml attrs childs =
+  let rel, attrs = extract_attr "rel" attrs in
+  let href, attrs = extract_attr "href" attrs in
+  let rel = param_attr_to_ml (attr_to_ml "link" rel) in
+  let href = param_attr_to_ml (attr_to_ml "link" href) in
+  match childs with
+  | [] ->
+    string "(link " ^^ rel ^^ string " " ^^ href ^^ string " "
+    ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
+  | _ -> failwith "Must not have childs"
+
+and img_to_ml attrs childs =
+  let src, attrs = extract_attr "src" attrs in
+  let alt, attrs = extract_attr "alt" attrs in
+  let src = param_attr_to_ml (attr_to_ml "img" src) in
+  let alt = param_attr_to_ml (attr_to_ml "img" alt) in
+  match childs with
+  | [] ->
+    string "(img " ^^ src ^^ string " " ^^ alt ^^ string " "
+    ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
+  | _ -> failwith "Must not have childs"
 
 let _ =
   let el tag childs = `El (tag, childs) in
