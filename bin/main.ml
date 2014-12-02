@@ -37,6 +37,12 @@ let extract_attr name l =
   | [attr], l -> attr, l
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
+let extract_opt_attr name l =
+  match extract_attrs name l with
+  | [attr], l -> Some attr, l
+  | [], l -> None, l
+  | _ -> failwith ("Must have only one " ^ name ^ "attr.")
+
 let attr_to_ml tag_name ((_, name), value) =
   let autocomplete_value_to_ml = function
     | "on" -> "`On"
@@ -394,6 +400,8 @@ and tag_to_ml ((_, name), attrs) childs =
     | "head" -> head_to_ml
     | "link" -> link_to_ml
     | "img" -> img_to_ml
+    | "svg" -> svg_to_ml
+    | "bdo" -> bdo_to_ml
     | "base"
     | "hr"
     | "wbr"
@@ -409,7 +417,6 @@ and tag_to_ml ((_, name), attrs) childs =
     | "option"
     | "textarea"
     | "script" -> unary_to_ml name
-    | "svg" -> assert false
     | "body" 
     | "footer"
     | "header"
@@ -550,6 +557,22 @@ and img_to_ml attrs childs =
     string "(img " ^^ src ^^ string " " ^^ alt ^^ string " "
     ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
   | _ -> failwith "Must not have childs"
+
+and svg_to_ml attrs childs =
+  let xmlns, attrs = extract_opt_attr "xmlns" attrs in
+  let xmlns = 
+    match xmlns with 
+    | Some a -> param_attr_to_ml (attr_to_ml "svg" a) 
+    | None -> string "" 
+  in
+  string "(svg " ^^  xmlns ^^ string " " ^^ attrs_to_ml "svg" attrs
+  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
+
+and bdo_to_ml attrs childs =
+  let dir, attrs = extract_attr "dir" attrs in
+  let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
+  string "(bdo " ^^ dir ^^ string " " ^^ attrs_to_ml "bdo" attrs
+  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
 
 let _ =
   let el tag childs = `El (tag, childs) in
