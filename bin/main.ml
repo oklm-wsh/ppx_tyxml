@@ -590,9 +590,23 @@ and figure_to_ml attrs childs = assert false
 
 and object_to_ml attrs childs = assert false
 
-and audio_to_ml attrs childs = assert false
+and multimedia_to_ml name attrs childs =
+  let src, attrs = extract_opt_attr "src" attrs in
+  let srcs, childs = extract_els "source" childs in
+  let src =
+    match src with
+    | Some a -> param_attr_to_ml (attr_to_ml "audio" a)
+    | None -> string ""
+  in
+  string ("(" ^ name ^ " ") ^^ src ^^ string " ~srcs:" ^^ childs_to_ml srcs
+  ^^ string " " ^^ attrs_to_ml "audio" attrs ^^ string " "
+  ^^ childs_to_ml childs ^^ string ")\n"
 
-and video_to_ml attrs childs = assert false
+and audio_to_ml attrs childs =
+  multimedia_to_ml "audio" attrs childs
+
+and video_to_ml attrs childs =
+  multimedia_to_ml "video" attrs childs
 
 and area_to_ml attrs childs = assert false
 
