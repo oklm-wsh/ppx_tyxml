@@ -548,24 +548,22 @@ and head_to_ml attrs childs =
   ^^ string " " ^^ attrs_to_ml "head" attrs ^^ string " " 
   ^^ childs_to_ml childs ^^ string ")\n"
 
-and link_to_ml attrs childs =
-  let rel, attrs = extract_attr "rel" attrs in
-  let href, attrs = extract_attr "href" attrs in
-  let rel = param_attr_to_ml (attr_to_ml "link" rel) in
-  let href = param_attr_to_ml (attr_to_ml "link" href) in
-  match childs with
+and link_to_ml attrs = function
   | [] ->
+    let rel, attrs = extract_attr "rel" attrs in
+    let href, attrs = extract_attr "href" attrs in
+    let rel = param_attr_to_ml (attr_to_ml "link" rel) in
+    let href = param_attr_to_ml (attr_to_ml "link" href) in
     string "(link " ^^ rel ^^ string " " ^^ href ^^ string " "
     ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
   | _ -> failwith "Must not have childs"
 
-and img_to_ml attrs childs =
-  let src, attrs = extract_attr "src" attrs in
-  let alt, attrs = extract_attr "alt" attrs in
-  let src = param_attr_to_ml (attr_to_ml "img" src) in
-  let alt = param_attr_to_ml (attr_to_ml "img" alt) in
-  match childs with
+and img_to_ml attrs = function
   | [] ->
+    let src, attrs = extract_attr "src" attrs in
+    let alt, attrs = extract_attr "alt" attrs in
+    let src = param_attr_to_ml (attr_to_ml "img" src) in
+    let alt = param_attr_to_ml (attr_to_ml "img" alt) in
     string "(img " ^^ src ^^ string " " ^^ alt ^^ string " "
     ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
   | _ -> failwith "Must not have childs"
@@ -629,7 +627,13 @@ and optgroup_to_ml attrs childs =
   attrs_to_ml "optgroup" attrs ^^ string " " ^^ 
   childs_to_ml childs ^^ string ")\n"
 
-and command_to_ml attrs childs = assert false
+and command_to_ml attrs = function
+  | [] ->
+    let label, attrs = extract_attr "label" attrs in
+    let label = param_attr_to_ml (attr_to_ml "command" label) in
+    string "(command " ^^ label ^^ string " " ^^ 
+    attrs_to_ml "command" attrs ^^ string " ())\n"
+  | _ -> failwith "Must not have childs"
 
 and menu_to_ml attrs childs = assert false
 
