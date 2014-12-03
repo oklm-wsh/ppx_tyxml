@@ -402,6 +402,18 @@ and tag_to_ml ((_, name), attrs) childs =
     | "img" -> img_to_ml
     | "svg" -> svg_to_ml
     | "bdo" -> bdo_to_ml
+    | "figure" -> figure_to_ml
+    | "object" -> object_to_ml
+    | "audio" -> audio_to_ml
+    | "video" -> video_to_ml
+    | "area" -> area_to_ml
+    | "table" -> table_to_ml
+    | "tablex" -> tablex_to_ml
+    | "fieldset" -> fieldset_to_ml
+    | "datalist" -> datalist_to_ml
+    | "optgroup" -> optgroup_to_ml
+    | "command" -> command_to_ml
+    | "menu" -> menu_to_ml
     | "base"
     | "hr"
     | "wbr"
@@ -573,6 +585,30 @@ and bdo_to_ml attrs childs =
   let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
   string "(bdo " ^^ dir ^^ string " " ^^ attrs_to_ml "bdo" attrs
   ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
+
+and figure_to_ml attrs childs = assert false
+
+and object_to_ml attrs childs = assert false
+
+and audio_to_ml attrs childs = assert false
+
+and video_to_ml attrs childs = assert false
+
+and area_to_ml attrs childs = assert false
+
+and table_to_ml attrs childs = assert false
+
+and tablex_to_ml attrs childs = assert false
+
+and fieldset_to_ml attrs childs = assert false
+
+and datalist_to_ml attrs childs = assert false
+
+and optgroup_to_ml attrs childs = assert false
+
+and command_to_ml attrs childs = assert false
+
+and menu_to_ml attrs childs = assert false
 
 let _ =
   let el tag childs = `El (tag, childs) in
