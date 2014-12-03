@@ -408,7 +408,6 @@ and tag_to_ml ((_, name), attrs) childs =
     | "video" -> video_to_ml
     | "area" -> area_to_ml
     | "table" -> table_to_ml
-    | "tablex" -> tablex_to_ml
     | "fieldset" -> fieldset_to_ml
     | "datalist" -> datalist_to_ml
     | "optgroup" -> optgroup_to_ml
@@ -613,8 +612,6 @@ and area_to_ml attrs childs =
   ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
 
 and table_to_ml attrs childs = assert false
-
-and tablex_to_ml attrs childs = assert false
 
 and fieldset_to_ml attrs childs = assert false
 
