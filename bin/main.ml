@@ -592,11 +592,11 @@ and multimedia_to_ml name attrs childs =
   let srcs, childs = extract_els "source" childs in
   let src =
     match src with
-    | Some a -> param_attr_to_ml (attr_to_ml "audio" a)
+    | Some a -> param_attr_to_ml (attr_to_ml name a)
     | None -> string ""
   in
   string ("(" ^ name ^ " ") ^^ src ^^ string " ~srcs:" ^^ childs_to_ml srcs
-  ^^ string " " ^^ attrs_to_ml "audio" attrs ^^ string " "
+  ^^ string " " ^^ attrs_to_ml name attrs ^^ string " "
   ^^ childs_to_ml childs ^^ string ")\n"
 
 and audio_to_ml attrs childs =
