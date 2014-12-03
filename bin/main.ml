@@ -18,6 +18,10 @@ let is_el = function
 
 let is_data d = not (is_el d)
 
+let tag_name_is name = function
+  | `El (tag, _) -> tag_name tag = name
+  | _ -> false
+
 let extract_els name =
   List.partition 
     (function `El (e, _) -> tag_name e = name
@@ -377,6 +381,10 @@ let a_attr_to_ml (name, ml_attr_value) =
 let param_attr_to_ml (name, ml_attr_value) =
   string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
 
+let opt_attr_to_ml name = function
+  | Some a -> param_attr_to_ml (attr_to_ml name a) 
+  | None -> string "" 
+
 let attrs_to_ml tag_name = function
   | [] -> string "~a:[]"
   | attrs ->
@@ -569,10 +577,7 @@ and img_to_ml attrs = function
 
 and svg_to_ml attrs childs =
   let xmlns, attrs = extract_opt_attr "xmlns" attrs in
-  let xmlns = 
-    match xmlns with 
-    | Some a -> param_attr_to_ml (attr_to_ml "svg" a) 
-    | None -> string "" 
+  let xmlns = opt_attr_to_ml "svg" xmlns
   in
   string "(svg " ^^  xmlns ^^ string " " ^^ attrs_to_ml "svg" attrs
   ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
@@ -590,11 +595,7 @@ and object_to_ml attrs childs = assert false
 and multimedia_to_ml name attrs childs =
   let src, attrs = extract_opt_attr "src" attrs in
   let srcs, childs = extract_els "source" childs in
-  let src =
-    match src with
-    | Some a -> param_attr_to_ml (attr_to_ml name a)
-    | None -> string ""
-  in
+  let src = opt_attr_to_ml name src in
   string ("(" ^ name ^ " ") ^^ src ^^ string " ~srcs:" ^^ childs_to_ml srcs
   ^^ string " " ^^ attrs_to_ml name attrs ^^ string " "
   ^^ childs_to_ml childs ^^ string ")\n"
@@ -611,7 +612,26 @@ and area_to_ml attrs childs =
   string "(area " ^^ alt ^^ string " " ^^ attrs_to_ml "area" attrs
   ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
 
-and table_to_ml attrs childs = assert false
+and table_to_ml attrs childs = (* note : caption etc... should be opt *)
+  let caption, childs = extract_el "caption" childs in
+  let caption = string "~caption:" ^^ xml_to_ml caption in
+  let columns, childs= extract_els "colgroup" childs in
+  let columns = string "~columns:" ^^ childs_to_ml columns in
+  let thead, childs = extract_el "thead" childs in
+  let thead = string "~thead:" ^^ xml_to_ml thead in
+  let tfoot, childs = extract_el "tfoot" childs in
+  let tfoot = string "~tfoot:" ^^ xml_to_ml tfoot in
+  let name = 
+    if List.exists (tag_name_is "tr") childs then
+      "table"
+    else
+      "tablex"
+  in
+  string "(" ^^ string name ^^ string " " ^^
+  caption ^^ string " " ^^ columns ^^ string " " ^^
+  thead ^^ string " " ^^ tfoot ^^ string " " ^^
+  attrs_to_ml "table" attrs ^^ string " " ^^ childs_to_ml childs
+  ^^ string ")\n"
 
 and fieldset_to_ml attrs childs = assert false
 
