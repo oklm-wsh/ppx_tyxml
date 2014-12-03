@@ -608,7 +608,11 @@ and audio_to_ml attrs childs =
 and video_to_ml attrs childs =
   multimedia_to_ml "video" attrs childs
 
-and area_to_ml attrs childs = assert false
+and area_to_ml attrs childs =
+  let alt, attrs = extract_attr "alt" attrs in
+  let alt = param_attr_to_ml (attr_to_ml "area" alt) in
+  string "(area " ^^ alt ^^ string " " ^^ attrs_to_ml "area" attrs
+  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
 
 and table_to_ml attrs childs = assert false
 
