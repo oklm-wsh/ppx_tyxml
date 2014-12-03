@@ -622,7 +622,12 @@ and fieldset_to_ml attrs childs = assert false
 
 and datalist_to_ml attrs childs = assert false
 
-and optgroup_to_ml attrs childs = assert false
+and optgroup_to_ml attrs childs = 
+  let label, attrs = extract_attr "label" attrs in
+  let label = param_attr_to_ml (attr_to_ml "optgroup" label) in
+  string "(optgroup " ^^ label ^^ string " " ^^ 
+  attrs_to_ml "optgroup" attrs ^^ string " " ^^ 
+  childs_to_ml childs ^^ string ")\n"
 
 and command_to_ml attrs childs = assert false
 
