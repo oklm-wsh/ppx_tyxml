@@ -371,12 +371,13 @@ let attr_to_ml tag_name ((_, name), value) =
     | "cite"
     | "href"
     | "src"
-    | "data" -> "(uri_of_string \"" ^ value ^ "\")"
+    | "data" -> "uri_of_string \"" ^ value ^ "\""
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
   in name, ml_attr_value
 
 let a_attr_to_ml (name, ml_attr_value) = 
-  string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")
+  (*string ("a_" ^ name ^ " " ^ "(" ^ ml_attr_value ^ ")")*)
+  string ("a_" ^ name ^ " " ^ ml_attr_value)
 
 let param_attr_to_ml (name, ml_attr_value) =
   string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
@@ -390,15 +391,16 @@ let attrs_to_ml tag_name = function
   | attrs ->
      let ml_attrs = List.map (attr_to_ml tag_name) attrs 
                     |> List.map a_attr_to_ml in
-     string "~a:[" ^^ List.fold_left (fun a b -> a ^^ string ";" ^^ b)
+(*     string "~a:[" ^^ List.fold_left (fun a b -> a ^^ string ";" ^^ b)
 				     (List.hd ml_attrs) (List.tl ml_attrs)
-     ^^ string "]\n"
+     ^^ string "]\n"*)
+     string "~a:" ^^ OCaml.list (fun x -> x) ml_attrs
 
 let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
   | `Data s ->
-    string ("(pcdata \"" ^ s ^ "\")")
+    string ("pcdata \"" ^ s ^ "\"")
 
 and tag_to_ml ((_, name), attrs) childs =
   let _ = List.map (attr_to_ml name) attrs in
@@ -516,44 +518,45 @@ and childs_to_ml = function
   | [] -> string "[]"
   | childs ->  
      let ml_childs = List.map xml_to_ml childs in 
-     string "[\n" ^^
+(*     string "[\n" ^^
        List.fold_left (fun a b -> a ^^ string ";\n" ^^ b)
 		      (List.hd ml_childs) (List.tl ml_childs)
-       ^^ string "]\n"
+       ^^ string "]\n"*)
+     OCaml.list (fun x -> x) ml_childs
 		      
 and nullary_to_ml name attrs = function
   | [] ->
-    string "(" ^^ string name ^^ string " " 
-    ^^ attrs_to_ml name attrs ^^ string " " ^^ string " ())\n"
+    string name ^^ space 
+    ^^ attrs_to_ml name attrs ^^ space ^^ string "()"
   | _ -> failwith "Must not have childs."
 
 and unary_to_ml name attrs = function
   | [x] ->
-    string "(" ^^ string name ^^ string " " 
-    ^^ attrs_to_ml name attrs ^^ string " " ^^ string " "
-    ^^ xml_to_ml x ^^ string ")\n"
+    string name ^^ space 
+    ^^ attrs_to_ml name attrs ^^ space
+    ^^ parens (xml_to_ml x)
   | _ -> failwith (name ^ " Must have only one child.")
 
 and star_to_ml name attrs childs =
-  string "(" ^^ string name ^^ string " "
-  ^^ string " " ^^ attrs_to_ml name attrs ^^ string " " 
-  ^^ childs_to_ml childs ^^ string ")\n"
-
+  string name ^^ space ^^ 
+    attrs_to_ml name attrs ^^ space 
+    ^^ childs_to_ml childs
+		    
 and html_to_ml attrs childs =
   let head, childs = extract_el "head" childs in
   let body, childs = extract_el "body" childs in
   if List.length childs = 0 then
-    string "(html " ^^ xml_to_ml head 
-    ^^ string " " ^^ string " " ^^ attrs_to_ml "html" attrs 
-    ^^ string " " ^^ xml_to_ml body ^^ string ")\n"
+    parens (string "html" ^^ space ^^ attrs_to_ml "html" attrs 
+	    ^^ space ^^ parens (xml_to_ml head) ^^ space ^^ 
+	      space ^^ parens (xml_to_ml body))
   else
     failwith "<html> must only have <head> and <body> as childs"
 
 and head_to_ml attrs childs = 
   let title, childs = extract_el "title" childs in
-  string "(head " ^^ xml_to_ml title ^^ string " "
-  ^^ string " " ^^ attrs_to_ml "head" attrs ^^ string " " 
-  ^^ childs_to_ml childs ^^ string ")\n"
+  string "head" ^^ space ^^ attrs_to_ml "head" attrs ^^ space 
+  ^^ parens (xml_to_ml title) ^^ space
+  ^^ childs_to_ml childs
 
 and link_to_ml attrs = function
   | [] ->
@@ -561,8 +564,8 @@ and link_to_ml attrs = function
     let href, attrs = extract_attr "href" attrs in
     let rel = param_attr_to_ml (attr_to_ml "link" rel) in
     let href = param_attr_to_ml (attr_to_ml "link" href) in
-    string "(link " ^^ rel ^^ string " " ^^ href ^^ string " "
-    ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
+    string "link" ^^ space ^^ rel ^^ space ^^ href ^^ space
+    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"
   | _ -> failwith "Must not have childs"
 
 and img_to_ml attrs = function
@@ -571,22 +574,22 @@ and img_to_ml attrs = function
     let alt, attrs = extract_attr "alt" attrs in
     let src = param_attr_to_ml (attr_to_ml "img" src) in
     let alt = param_attr_to_ml (attr_to_ml "img" alt) in
-    string "(img " ^^ src ^^ string " " ^^ alt ^^ string " "
-    ^^ attrs_to_ml "link" attrs ^^ string " " ^^ string " ())\n"
+    string "img" ^^ space ^^ src ^^ space ^^ alt ^^ space
+    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"
   | _ -> failwith "Must not have childs"
 
 and svg_to_ml attrs childs =
   let xmlns, attrs = extract_opt_attr "xmlns" attrs in
   let xmlns = opt_attr_to_ml "svg" xmlns
   in
-  string "(svg " ^^  xmlns ^^ string " " ^^ attrs_to_ml "svg" attrs
-  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
+  string "svg" ^^ space ^^ xmlns ^^ space ^^ attrs_to_ml "svg" attrs
+  ^^ space ^^ childs_to_ml childs
 
 and bdo_to_ml attrs childs =
   let dir, attrs = extract_attr "dir" attrs in
   let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
-  string "(bdo " ^^ dir ^^ string " " ^^ attrs_to_ml "bdo" attrs
-  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
+  string "bdo" ^^ dir ^^ space ^^ attrs_to_ml "bdo" attrs
+  ^^ space ^^ childs_to_ml childs
 
 and figure_to_ml attrs childs = assert false
 
@@ -596,9 +599,9 @@ and multimedia_to_ml name attrs childs =
   let src, attrs = extract_opt_attr "src" attrs in
   let srcs, childs = extract_els "source" childs in
   let src = opt_attr_to_ml name src in
-  string ("(" ^ name ^ " ") ^^ src ^^ string " ~srcs:" ^^ childs_to_ml srcs
-  ^^ string " " ^^ attrs_to_ml name attrs ^^ string " "
-  ^^ childs_to_ml childs ^^ string ")\n"
+  string name ^^ space ^^ src ^^ space ^^ string "~srcs:" 
+  ^^ childs_to_ml srcs ^^ space^^ attrs_to_ml name attrs ^^ space
+  ^^ childs_to_ml childs
 
 and audio_to_ml attrs childs =
   multimedia_to_ml "audio" attrs childs
@@ -609,29 +612,28 @@ and video_to_ml attrs childs =
 and area_to_ml attrs childs =
   let alt, attrs = extract_attr "alt" attrs in
   let alt = param_attr_to_ml (attr_to_ml "area" alt) in
-  string "(area " ^^ alt ^^ string " " ^^ attrs_to_ml "area" attrs
-  ^^ string " " ^^ childs_to_ml childs ^^ string ")\n"
+  string "area" ^^ space ^^ alt ^^ space ^^ attrs_to_ml "area" attrs
+  ^^ space ^^ childs_to_ml childs
 
 and table_to_ml attrs childs = (* note : caption etc... should be opt *)
   let caption, childs = extract_el "caption" childs in
-  let caption = string "~caption:" ^^ xml_to_ml caption in
+  let caption = string "~caption:" ^^ parens (xml_to_ml caption) in
   let columns, childs= extract_els "colgroup" childs in
   let columns = string "~columns:" ^^ childs_to_ml columns in
   let thead, childs = extract_el "thead" childs in
-  let thead = string "~thead:" ^^ xml_to_ml thead in
+  let thead = string "~thead:" ^^ parens (xml_to_ml thead) in
   let tfoot, childs = extract_el "tfoot" childs in
-  let tfoot = string "~tfoot:" ^^ xml_to_ml tfoot in
+  let tfoot = string "~tfoot:" ^^ parens (xml_to_ml tfoot) in
   let name = 
     if List.exists (tag_name_is "tr") childs then
       "table"
     else
       "tablex"
   in
-  string "(" ^^ string name ^^ string " " ^^
-  caption ^^ string " " ^^ columns ^^ string " " ^^
-  thead ^^ string " " ^^ tfoot ^^ string " " ^^
-  attrs_to_ml "table" attrs ^^ string " " ^^ childs_to_ml childs
-  ^^ string ")\n"
+  string name ^^ space ^^
+  caption ^^ space ^^ columns ^^ space ^^
+  thead ^^ space ^^ tfoot ^^ space ^^
+  attrs_to_ml "table" attrs ^^ space ^^ childs_to_ml childs
 
 and fieldset_to_ml attrs childs = assert false
 
@@ -640,16 +642,16 @@ and datalist_to_ml attrs childs = assert false
 and optgroup_to_ml attrs childs = 
   let label, attrs = extract_attr "label" attrs in
   let label = param_attr_to_ml (attr_to_ml "optgroup" label) in
-  string "(optgroup " ^^ label ^^ string " " ^^ 
-  attrs_to_ml "optgroup" attrs ^^ string " " ^^ 
-  childs_to_ml childs ^^ string ")\n"
+  string "optgroup" ^^ space ^^ label ^^ space ^^ 
+  attrs_to_ml "optgroup" attrs ^^ space^^ 
+  childs_to_ml childs
 
 and command_to_ml attrs = function
   | [] ->
     let label, attrs = extract_attr "label" attrs in
     let label = param_attr_to_ml (attr_to_ml "command" label) in
-    string "(command " ^^ label ^^ string " " ^^ 
-    attrs_to_ml "command" attrs ^^ string " ())\n"
+    string "command" ^^ space ^^ label ^^ space ^^ 
+    attrs_to_ml "command" attrs ^^ string "()"
   | _ -> failwith "Must not have childs"
 
 and menu_to_ml attrs childs = assert false
@@ -661,7 +663,7 @@ let _ =
   | `El (tag, childs) as e ->
     let buff = Buffer.create 150 in
     ignore (xml_to_ml e
-           |> PPrint.ToBuffer.pretty 1.0 0 buff);
+           |> PPrint.ToBuffer.pretty 0.9 0 buff);
     print_endline (Buffer.contents buff)
   | `Data s -> print_endline "Lol"
   | exception Xmlm.Error ((x, y), err) ->
