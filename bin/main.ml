@@ -1,4 +1,4 @@
-open PPrint
+(*open PPrint*)
 open Tag
 (* Known issues : <tag> xmlm throws error *)
 (*                formnovalidate output a_novalidate *)
@@ -10,10 +10,11 @@ let _ =
   let data s = `Data s in
   match snd (Xmlm.input_doc_tree ~el ~data (Xmlm.make_input ~strip:true (`Channel stdin))) with
   | `El (tag, childs) as e ->
-    let buff = Buffer.create 150 in
+(*    let buff = Buffer.create 150 in
     ignore (xml_to_ml e
-           |> PPrint.ToBuffer.pretty 0.9 0 buff);
-    print_endline (Buffer.contents buff)
+           |> PPrint.ToBuffer.pretty 0.9 0 buff);*)
+     let exp = xml_to_ml e in
+    print_endline (Pprintast.string_of_expression exp)
   | `Data s -> print_endline "Lol"
   | exception Xmlm.Error ((x, y), err) ->
     Printf.printf "Error at line %d column %d\n" x y;

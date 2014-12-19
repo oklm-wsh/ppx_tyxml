@@ -8,7 +8,7 @@ License:     LGPL
 
 Executable xmltoty
   Path:       .
-  BuildDepends: xmlm, pprint
+  BuildDepends: xmlm, compiler-libs.common
   BuildTools: ocamlbuild
   MainIs:     bin/main.ml
   

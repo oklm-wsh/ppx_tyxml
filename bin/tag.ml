@@ -1,5 +1,6 @@
-open PPrint
-open Attr
+(*open PPrint*)
+(*open Attr*)
+open Mkast
 
 type t = [
   | `El of Xmlm.tag * t list
@@ -32,13 +33,14 @@ let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
   | `Data s ->
-    string ("pcdata \"" ^ s ^ "\"")
+    (*string ("pcdata \"" ^ s ^ "\"")*)
+     mkapply "pcdata" [] [mkstring s]
 
 and tag_to_ml ((_, name), attrs) childs =
-  let _ = List.map (attr_to_ml name) attrs in
+  (*let _ = List.map (attr_to_ml name) attrs in*)
   let fun_to_ml =
     match name with
-    | "html" -> html_to_ml
+(*    | "html" -> html_to_ml
     | "head" -> head_to_ml
     | "link" -> link_to_ml
     | "img" -> img_to_ml
@@ -54,7 +56,7 @@ and tag_to_ml ((_, name), attrs) childs =
     | "datalist" -> datalist_to_ml
     | "optgroup" -> optgroup_to_ml
     | "command" -> command_to_ml
-    | "menu" -> menu_to_ml
+    | "menu" -> menu_to_ml*)
     | "base"
     | "hr"
     | "wbr"
@@ -146,30 +148,45 @@ and tag_to_ml ((_, name), attrs) childs =
     | _ -> failwith ("Unknown tag " ^ name ^ ".")
   in fun_to_ml attrs childs
 
-and childs_to_ml = function
+and childs_to_ml childs = (*function
   | [] -> string "[]"
   | childs ->  
      let ml_childs = List.map xml_to_ml childs in 
-     OCaml.list (fun x -> x) ml_childs
-		      
+     OCaml.list (fun x -> x) ml_childs*)
+  mklist (List.map xml_to_ml childs)
+
 and nullary_to_ml name attrs = function
+  | [] ->
+     mkapply name [(*("a", attrs)*)] [unit]
+  | _ -> failwith "Must not have childs"
+
+and unary_to_ml name attrs = function
+  | [x] ->
+     mkapply name [(*("a", attrs)*)] [xml_to_ml x]
+  | _ -> failwith "Must have only one childs"
+
+and star_to_ml name attrs childs =
+  mkapply name [(*("a", attrs)*)] [childs_to_ml childs]
+		      
+(*and nullary_to_ml name attrs = function
   | [] ->
     string name ^^ space 
     ^^ attrs_to_ml name attrs ^^ space ^^ string "()"
-  | _ -> failwith "Must not have childs."
+  | _ -> failwith "Must not have childs."*)
 
-and unary_to_ml name attrs = function
+(*and unary_to_ml name attrs = function
   | [x] ->
     string name ^^ space 
     ^^ attrs_to_ml name attrs ^^ space
     ^^ parens (xml_to_ml x)
-  | _ -> failwith (name ^ " Must have only one child.")
+  | _ -> failwith (name ^ " Must have only one child.")*)
 
-and star_to_ml name attrs childs =
+(*and star_to_ml name attrs childs =
   string name ^^ space ^^ 
     attrs_to_ml name attrs ^^ space 
-    ^^ childs_to_ml childs
-		    
+    ^^ childs_to_ml childs*)
+
+(*		    
 and html_to_ml attrs childs =
   let head, childs = extract_el "head" childs in
   let body, childs = extract_el "body" childs in
@@ -283,4 +300,21 @@ and command_to_ml attrs = function
   | _ -> failwith "Must not have childs"
 
 and menu_to_ml attrs childs = assert false
+ *)
 
+(*
+
+let nullary_to_ml name attrs = function
+  | [] ->
+     mkapply name [("a", attrs)] [unit]
+  | _ -> failwith "Must not have childs"
+
+let unary_to_ml name attrs = function
+  | [x] ->
+     mkapply name [("a", attrs)] [x]
+  | _ -> failwith "Must have only one childs"
+
+let star_to_ml name attrs childs =
+  mkapply name [("a", attrs)] childs
+
+ *)
