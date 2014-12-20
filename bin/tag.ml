@@ -1,4 +1,3 @@
-(*open PPrint*)
 open Attr
 open Mkast
 
@@ -33,11 +32,9 @@ let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
   | `Data s ->
-    (*string ("pcdata \"" ^ s ^ "\"")*)
      mkapply "pcdata" [] [mkstring s]
 
 and tag_to_ml ((_, name), attrs) childs =
-  (*let _ = List.map (attr_to_ml name) attrs in*)
   let fun_to_ml =
     match name with
   | "html" -> html_to_ml
@@ -148,11 +145,7 @@ and tag_to_ml ((_, name), attrs) childs =
     | _ -> failwith ("Unknown tag " ^ name ^ ".")
   in fun_to_ml attrs childs
 
-and childs_to_ml childs = (*function
-  | [] -> string "[]"
-  | childs ->  
-     let ml_childs = List.map xml_to_ml childs in 
-     OCaml.list (fun x -> x) ml_childs*)
+and childs_to_ml childs =
   mklist (List.map xml_to_ml childs)
 
 and nullary_to_ml name attrs = function
@@ -191,9 +184,6 @@ and html_to_ml attrs childs =
   let head, childs = extract_el "head" childs in
   let body, childs = extract_el "body" childs in
   if List.length childs = 0 then
-   (* string "html" ^^ space ^^ attrs_to_ml "html" attrs 
-    ^^ space ^^ parens (xml_to_ml head) ^^ space ^^ 
-      space ^^ parens (xml_to_ml body)*)
     mkapply "html" 
 	    ["a", attrs_to_ml "html" attrs] 
 	    [xml_to_ml head; xml_to_ml body]
@@ -202,9 +192,6 @@ and html_to_ml attrs childs =
 
 and head_to_ml attrs childs = 
   let title, childs = extract_el "title" childs in
-  (*string "head" ^^ space ^^ attrs_to_ml "head" attrs ^^ space 
-  ^^ parens (xml_to_ml title) ^^ space
-  ^^ childs_to_ml childs*)
   mkapply "head" 
 	  ["a", attrs_to_ml "head" attrs]
 	  [xml_to_ml title; childs_to_ml childs]
@@ -213,10 +200,6 @@ and link_to_ml attrs = function
   | [] ->
     let rel, attrs = extract_attr "rel" attrs in
     let href, attrs = extract_attr "href" attrs in
-    (*let rel = param_attr_to_ml (attr_to_ml "link" rel) in
-    let href = param_attr_to_ml (attr_to_ml "link" href) in
-    string "link" ^^ space ^^ rel ^^ space ^^ href ^^ space
-    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"*)
     mkapply "link" 
 	    ["rel", attrs_to_ml "link" [rel];
 	     "href", attrs_to_ml "link" [href];
@@ -228,10 +211,6 @@ and img_to_ml attrs = function
   | [] ->
     let src, attrs = extract_attr "src" attrs in
     let alt, attrs = extract_attr "alt" attrs in
-    (*let src = param_attr_to_ml (attr_to_ml "img" src) in
-    let alt = param_attr_to_ml (attr_to_ml "img" alt) in
-    string "img" ^^ space ^^ src ^^ space ^^ alt ^^ space
-    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"*)
     mkapply "link" 
 	    ["src", attrs_to_ml "img" [src];
 	     "alt", attrs_to_ml "img" [alt];
@@ -248,9 +227,6 @@ and svg_to_ml attrs childs =
  *)
 and bdo_to_ml attrs childs =
   let dir, attrs = extract_attr "dir" attrs in
-  (*let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
-  string "bdo" ^^ dir ^^ space ^^ attrs_to_ml "bdo" attrs
-  ^^ space ^^ childs_to_ml childs*)
   mkapply "bdo" ["dir", attrs_to_ml "bdo" [dir];
 		 "a", attrs_to_ml "bdo" attrs]
 	  [childs_to_ml childs]
@@ -275,9 +251,6 @@ and video_to_ml attrs childs =
  *)
 and area_to_ml attrs childs =
   let alt, attrs = extract_attr "alt" attrs in
-  (*let alt = param_attr_to_ml (attr_to_ml "area" alt) in
-  string "area" ^^ space ^^ alt ^^ space ^^ attrs_to_ml "area" attrs
-  ^^ space ^^ childs_to_ml childs*)
   mkapply "area" 
 	  ["alt", attrs_to_ml "area" [alt];
 	   "a", attrs_to_ml "area" attrs]
@@ -310,10 +283,6 @@ and datalist_to_ml attrs childs = assert false
 
 and optgroup_to_ml attrs childs = 
   let label, attrs = extract_attr "label" attrs in
-  (*let label = param_attr_to_ml (attr_to_ml "optgroup" label) in
-  string "optgroup" ^^ space ^^ label ^^ space ^^ 
-  attrs_to_ml "optgroup" attrs ^^ space^^ 
-  childs_to_ml childs*)
   mkapply "optgroup" 
 	  ["label", attrs_to_ml "optgroup" [label];
 	  "a", attrs_to_ml "optgroup" attrs]
@@ -323,9 +292,6 @@ and optgroup_to_ml attrs childs =
 and command_to_ml attrs = function
   | [] ->
     let label, attrs = extract_attr "label" attrs in
-    (*let label = param_attr_to_ml (attr_to_ml "command" label) in
-    string "command" ^^ space ^^ label ^^ space ^^ 
-    attrs_to_ml "command" attrs ^^ string "()"*)
     mkapply "command"
 	    ["label", attrs_to_ml "command" [label];
 	     "a", attrs_to_ml "command" attrs]
