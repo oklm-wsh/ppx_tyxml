@@ -3,6 +3,10 @@ open Pprintast
 
 let string s = Asttypes.Const_string (s, None)
 
+let float s = Asttypes.Const_float s
+
+let int v = Asttypes.Const_int v
+
 let mkloc id =
   let lid = Longident.Lident id in
   Location.mkloc lid !default_loc
@@ -13,9 +17,13 @@ let mkconstant constant = Exp.constant constant
 
 let mkstring s = mkconstant (string s)
 
+let mkfloat s = mkconstant (float s)
+
+let mkint v = mkconstant (int v)
+
 let mkconstruct construct param = Exp.construct (mkloc construct) param
 
-let mkvariant label = Exp.variant label None
+let mkvariant label param = Exp.variant label param
 
 let mktuple tuple = Exp.tuple tuple
 

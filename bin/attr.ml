@@ -22,156 +22,172 @@ let extract_opt_attr name l =
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
 let attr_to_ml tag_name ((_, name), value) =
-  let autocomplete_value_to_ml = function
-    | "on" -> "`On"
-    | "off" -> "`Off"
+  let autocomplete_value_to_ml v =
+    match v with
+    | "on" (* -> "`On" *)
+    | "off" (* -> "`Off" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown autocomplete attr value"
   in
-  let crossorigin_value_to_ml = function
-    | "anonymous" -> "`Anonymous"
-    | "use-credentials" -> "`Use_credentials"
+  let crossorigin_value_to_ml v =
+    match v with
+    | "anonymous" (* -> "`Anonymous" *)
+    | "use-credentials" (* -> "`Use_credentials" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown crossorigin attr value"
   in
-  let dir_value_to_ml = function
-    | "lrt" -> "`Lrt"
-    | "rtl" -> "`Rtl"
+  let dir_value_to_ml v =
+    match v with
+    | "lrt" (* -> "`Lrt" *)
+    | "rtl" (* -> "`Rtl" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown dir attr value"
   in
   let formmethod_value_to_ml value =
     match String.lowercase value with
-    | "delete" -> "`Delete"
-    | "get" -> "`Get"
-    | "post" -> "`Post"
-    | "put" -> "`Put"
+    | "delete" (* -> "`Delete" *)
+    | "get" (* -> "`Get" *)
+    | "post" (* -> "`Post" *)
+    | "put" (* -> "`Put" *) -> mkvariant (fmt_variant (String.lowercase value)) None
     | _ -> failwith "Unknown formmethod or method attr value"
   in
   let method_value_to_ml = formmethod_value_to_ml in
-  let preload_value_to_ml = function
-    | "audio" -> "`Audio"
-    | "metadata" -> "`Metadata"
-    | "none" -> "`None"
+  let preload_value_to_ml v =
+    match v with
+    | "audio" (* -> "`Audio" *)
+    | "metadata" (* -> "`Metadata" *)
+    | "none" (* -> "`None" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown preload attr value"
   in
-  let wrap_value_to_ml = function
-    | "hard" -> "`Hard"
-    | "soft" -> "`Soft"
+  let wrap_value_to_ml v =
+    match v with
+    | "hard" (* -> "`Hard" *)
+    | "soft" (* -> "`Soft" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unkown wrap attr value"
   in
   let xmlns_value_to_ml = function
-    | "http://www.w3.org/1999/xhtml" -> "`W3_org_1999_xhtml"
+    | "http://www.w3.org/1999/xhtml" -> mkvariant "W3_org_1999_xhtml" None
     | _ -> failwith "xmls value should be http://www.w3.org/1999/xhtml"
   in
-  let input_type_value_to_ml = function
-    | "button" -> "`Button"
-    | "checkbox" -> "`Checkbox"
-    | "color" -> "`Color"
-    | "date" -> "`Date"
-    | "datetime" -> "`Datetime"
-    | "datetime-local" -> "`Datetime_local"
-    | "email" -> "`Email"
-    | "file" -> "`File"
-    | "hidden" -> "`Hidden"
-    | "image" -> "`Image"
-    | "month" -> "`Month"
-    | "number" -> "`Number"
-    | "password" -> "`Password"
-    | "radio" -> "`Radio"
-    | "range" -> "`Range"
-    | "reset" -> "`Reset"
-    | "search" -> "`Search"
-    | "submit" -> "`Submit"
-    | "tel" -> "`Tel"
-    | "text" -> "`Text"
-    | "time" -> "`Time"
-    | "url" -> "`Url"
-    | "week" -> "`Week"
+  let input_type_value_to_ml v =
+    match v with
+    | "button" (* -> "`Button" *)
+    | "checkbox" (* -> "`Checkbox" *)
+    | "color" (* -> "`Color" *)
+    | "date" (* -> "`Date" *)
+    | "datetime" (* -> "`Datetime" *)
+    | "datetime-local" (* -> "`Datetime_local" *)
+    | "email" (* -> "`Email" *)
+    | "file" (* -> "`File" *)
+    | "hidden" (* -> "`Hidden" *)
+    | "image" (* -> "`Image" *)
+    | "month" (* -> "`Month" *)
+    | "number" (* -> "`Number" *)
+    | "password" (* -> "`Password" *)
+    | "radio" (* -> "`Radio" *)
+    | "range" (* -> "`Range" *)
+    | "reset" (* -> "`Reset" *)
+    | "search" (* -> "`Search" *)
+    | "submit" (* -> "`Submit" *)
+    | "tel" (* -> "`Tel" *)
+    | "text" (* -> "`Text" *)
+    | "time" (* -> "`Time" *)
+    | "url" (* -> "`Url" *)
+    | "week" (* -> "`Week" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown input type value attr"
   in
-  let button_type_value_to_ml = function
-    | "button" -> "`Button"
-    | "reset" -> "`Reset"
-    | "submit" -> "`Submit"
+  let button_type_value_to_ml v =
+    match v with
+    | "button" (* -> "`Button" *)
+    | "reset" (* -> "`Reset" *)
+    | "submit" (* -> "`Submit" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown button type value attr"
   in
-  let command_type_value_to_ml = function
-    | "checkbox" -> "`Checkbox"
-    | "command" -> "`Command"
-    | "radio" -> "`Radio"
+  let command_type_value_to_ml v =
+    match v with
+    | "checkbox" (* -> "`Checkbox" *)
+    | "command" (* -> "`Command" *)
+    | "radio" (* -> "`Radio" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown command type value attr"
   in
-  let menu_type_value_to_ml = function
-    | "context" -> "`Context"
-    | "toolbar" -> "`Toolbar"
+  let menu_type_value_to_ml v =
+    match v with
+    | "context" (* -> "`Context" *)
+    | "toolbar" (* -> "`Toolbar" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown menu type value attr"
   in
-  let align_value_to_ml = function
-    | "char" -> "`Char"
-    | "justify" -> "`Justify"
-    | "left" -> "`Left"
-    | "right" -> "`Right"
+  let align_value_to_ml v =
+    match v with
+    | "char" (* -> "`Char" *)
+    | "justify" (* -> "`Justify" *)
+    | "left" (* -> "`Left" *)
+    | "right" (* -> "`Right" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown align value attr"
   in
-  let scope_value_to_ml = function
-    | "col" -> "`Col"
-    | "colgroup" -> "`Colgroup"
-    | "row" -> "`Row"
-    | "rowgroup" -> "`Rowgroup"
+  let scope_value_to_ml v =
+    match v with
+    | "col" (* -> "`Col" *)
+    | "colgroup" (* -> "`Colgroup" *)
+    | "row" (* -> "`Row" *)
+    | "rowgroup" (* -> "`Rowgroup" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown scope value attr"
   in
-  let rules_value_to_ml = function
-    | "all" -> "`All"
-    | "cols" -> "`Cols"
-    | "groups" -> "`Groups"
-    | "none" -> "`None"
-    | "rows" -> "`Rows"
+  let rules_value_to_ml v =
+    match v with
+    | "all" (* -> "`All" *)
+    | "cols" (* -> "`Cols" *)
+    | "groups" (* -> "`Groups" *)
+    | "none" (* -> "`None" *)
+    | "rows" (* -> "`Rows" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown rules value attr"
   in
-  let shape_value_to_ml = function
-    | "circle" -> "`Circle"
-    | "default" -> "`Default"
-    | "poly" -> "`Poly"
-    | "rect" -> "`Rect"
+  let shape_value_to_ml v =
+    match v with
+    | "circle" (* -> "`Circle" *)
+    | "default" (* -> "`Default" *)
+    | "poly" (* -> "`Poly" *)
+    | "rect" (* -> "`Rect" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown shape value attr"
   in
-  let frameborder_value_to_ml = function
-    | "one" -> "`One"
-    | "zero" -> "`Zero"
+  let frameborder_value_to_ml v =
+    match v with
+    | "one" (* -> "`One" *)
+    | "zero" (* -> "`Zero" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown frameborder value attr"
   in
-  let scrolling_value_to_ml = function
-    | "auto" -> "`Auto"
-    | "no" -> "`No"
-    | "yes" -> "`Yes"
+  let scrolling_value_to_ml v =
+    match v with
+    | "auto" (* -> "`Auto" *)
+    | "no" (* -> "`No" *)
+    | "yes" (* -> "`Yes" *) -> mkvariant (fmt_variant v) None
     | _ -> failwith "Unknown scrolling value attr"
   in
-  let rel_value_to_ml = function
-    | "alternate" -> "`Alternate"
-    | "archives" -> "`Archives"
-    | "author" -> "`Author"
-    | "bookmark" -> "`Bookmark"
-    | "external" -> "`External"
-    | "first" -> "`First"
-    | "help" -> "`Help"
-    | "icon" -> "`Icon"
-    | "index" -> "`Index"
-    | "last" -> "`Last"
-    | "license" -> "`License"
-    | "next" -> "`Next"
-    | "nofollow" -> "`Nofollow"
-    | "noreferrer" -> "`Noreferrer"
-    | "pingback" -> "`Pingback"
-    | "prefetch" -> "`Prefetch"
-    | "prev" -> "`Prev"
-    | "search" -> "`Search"
-    | "sidebar" -> "`Sidebar"
-    | "stylesheet" -> "`Stylesheet"
-    | "tag" -> "`Tag"
-    | "up" -> "`Up"
-    | other -> "(`Other \"" ^ other ^ "\")"
+  let rel_value_to_ml v =
+    match v with
+    | "alternate" (* -> "`Alternate" *)
+    | "archives" (* -> "`Archives" *)
+    | "author" (* -> "`Author" *)
+    | "bookmark" (* -> "`Bookmark" *)
+    | "external" (* -> "`External" *)
+    | "first" (* -> "`First" *)
+    | "help" (* -> "`Help" *)
+    | "icon" (* -> "`Icon" *)
+    | "index" (* -> "`Index" *)
+    | "last" (* -> "`Last" *)
+    | "license" (* -> "`License" *)
+    | "next" (* -> "`Next" *)
+    | "nofollow" (* -> "`Nofollow" *)
+    | "noreferrer" (* -> "`Noreferrer" *)
+    | "pingback" (* -> "`Pingback" *)
+    | "prefetch" (* -> "`Prefetch" *)
+    | "prev" (* -> "`Prev" *)
+    | "search" (* -> "`Search" *)
+    | "sidebar" (* -> "`Sidebar" *)
+    | "stylesheet" (* -> "`Stylesheet" *)
+    | "tag" (* -> "`Tag" *)
+    | "up" (* -> "`Up" *) -> mkvariant (fmt_variant v) None
+    | other -> mkvariant "Other" (Some (mkstring other))(* "(`Other \"" ^ other ^ "\")" WARNING other take a param*)
   in
   let ml_attr_value = 
     match name with
-(*    | "autocomplete" -> autocomplete_value_to_ml value
+    | "autocomplete" -> autocomplete_value_to_ml value
     | "crossorigin" -> crossorigin_value_to_ml value
     | "dir" -> dir_value_to_ml value
     | "formmethod" -> formmethod_value_to_ml value
@@ -189,7 +205,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "shape" -> shape_value_to_ml value
     | "frameborder" -> frameborder_value_to_ml value
     | "scrolling" -> scrolling_value_to_ml value
-    | "rel" -> rel_value_to_ml value*)
+    | "rel" -> rel_value_to_ml value
     | "async" (* -> "`Async" *)
     | "autofocus" (* -> "`Autofocus" *)
     | "autoplay" (* -> "`Autoplay" *)
@@ -211,7 +227,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "selected" (* -> "`Selected" *)
     | "disabled" (* -> "`Disabled" *)
     | "readonly" (* -> "`ReadOnly" *)
-    | "defer" (* -> "`Defer" *) -> mkvariant (fmt_variant name)
+    | "defer" (* -> "`Defer" *) -> mkvariant (fmt_variant name) None
     | "mediagroup"
     | "challenge"
     | "contenteditable"
@@ -317,16 +333,16 @@ let attr_to_ml tag_name ((_, name), value) =
 (* http_equiv *)
     | "style"
     | "property" -> mkstring value(*"\"" ^ value ^ "\""*)
-(*    | "high"
+    | "high"
     | "low"
     | "max"
     (* | "input_max" *)
     | "min"
     (* | "input_min" *)
     | "optimum"
-    | "span"
-    | "start"
     | "step"
+    | "span" -> mkint (int_of_string value)
+    | "start"
     | "tabindex"
     | "cols"
     | "maxlength"
@@ -337,7 +353,9 @@ let attr_to_ml tag_name ((_, name), value) =
     | "colspan"
     | "rowspan"
     | "height"
-    | "width" -> value*)
+    | "width" -> mkfloat value
+(*       (try ignore (float_of_string value); mkfloat value
+       with _ -> failwith "Should be a float or a number.")*)
     | "action" (* formaction too *)
     | "icon"
     | "poster"

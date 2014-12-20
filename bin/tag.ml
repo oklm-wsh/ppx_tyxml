@@ -40,23 +40,23 @@ and tag_to_ml ((_, name), attrs) childs =
   (*let _ = List.map (attr_to_ml name) attrs in*)
   let fun_to_ml =
     match name with
-(*    | "html" -> html_to_ml
+  | "html" -> html_to_ml
     | "head" -> head_to_ml
     | "link" -> link_to_ml
     | "img" -> img_to_ml
-    | "svg" -> svg_to_ml
+(*    | "svg" -> svg_to_ml*)
     | "bdo" -> bdo_to_ml
-    | "figure" -> figure_to_ml
+(*    | "figure" -> figure_to_ml
     | "object" -> object_to_ml
     | "audio" -> audio_to_ml
     | "video" -> video_to_ml
-    | "area" -> area_to_ml
-    | "table" -> table_to_ml
+    | "area" -> area_to_ml*)
+(*    | "table" -> table_to_ml
     | "fieldset" -> fieldset_to_ml
-    | "datalist" -> datalist_to_ml
+    | "datalist" -> datalist_to_ml*)
     | "optgroup" -> optgroup_to_ml
     | "command" -> command_to_ml
-    | "menu" -> menu_to_ml*)
+(*    | "menu" -> menu_to_ml*)
     | "base"
     | "hr"
     | "wbr"
@@ -186,60 +186,79 @@ and star_to_ml name attrs childs =
     attrs_to_ml name attrs ^^ space 
     ^^ childs_to_ml childs*)
 
-(*		    
+		    
 and html_to_ml attrs childs =
   let head, childs = extract_el "head" childs in
   let body, childs = extract_el "body" childs in
   if List.length childs = 0 then
-    string "html" ^^ space ^^ attrs_to_ml "html" attrs 
+   (* string "html" ^^ space ^^ attrs_to_ml "html" attrs 
     ^^ space ^^ parens (xml_to_ml head) ^^ space ^^ 
-      space ^^ parens (xml_to_ml body)
+      space ^^ parens (xml_to_ml body)*)
+    mkapply "html" 
+	    ["a", attrs_to_ml "html" attrs] 
+	    [xml_to_ml head; xml_to_ml body]
   else
     failwith "<html> must only have <head> and <body> as childs"
 
 and head_to_ml attrs childs = 
   let title, childs = extract_el "title" childs in
-  string "head" ^^ space ^^ attrs_to_ml "head" attrs ^^ space 
+  (*string "head" ^^ space ^^ attrs_to_ml "head" attrs ^^ space 
   ^^ parens (xml_to_ml title) ^^ space
-  ^^ childs_to_ml childs
+  ^^ childs_to_ml childs*)
+  mkapply "head" 
+	  ["a", attrs_to_ml "head" attrs]
+	  [xml_to_ml title; childs_to_ml childs]
 
 and link_to_ml attrs = function
   | [] ->
     let rel, attrs = extract_attr "rel" attrs in
     let href, attrs = extract_attr "href" attrs in
-    let rel = param_attr_to_ml (attr_to_ml "link" rel) in
+    (*let rel = param_attr_to_ml (attr_to_ml "link" rel) in
     let href = param_attr_to_ml (attr_to_ml "link" href) in
     string "link" ^^ space ^^ rel ^^ space ^^ href ^^ space
-    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"
+    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"*)
+    mkapply "link" 
+	    ["rel", attrs_to_ml "link" [rel];
+	     "href", attrs_to_ml "link" [href];
+	     "a", attrs_to_ml "link" attrs]
+	    [unit]
   | _ -> failwith "Must not have childs"
 
 and img_to_ml attrs = function
   | [] ->
     let src, attrs = extract_attr "src" attrs in
     let alt, attrs = extract_attr "alt" attrs in
-    let src = param_attr_to_ml (attr_to_ml "img" src) in
+    (*let src = param_attr_to_ml (attr_to_ml "img" src) in
     let alt = param_attr_to_ml (attr_to_ml "img" alt) in
     string "img" ^^ space ^^ src ^^ space ^^ alt ^^ space
-    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"
+    ^^ attrs_to_ml "link" attrs ^^ space ^^ string "()"*)
+    mkapply "link" 
+	    ["src", attrs_to_ml "img" [src];
+	     "alt", attrs_to_ml "img" [alt];
+	     "a", attrs_to_ml "img" attrs]
+	    [unit]
   | _ -> failwith "Must not have childs"
-
+(*
 and svg_to_ml attrs childs =
   let xmlns, attrs = extract_opt_attr "xmlns" attrs in
   let xmlns = opt_attr_to_ml "svg" xmlns
   in
   string "svg" ^^ space ^^ xmlns ^^ space ^^ attrs_to_ml "svg" attrs
   ^^ space ^^ childs_to_ml childs
-
+ *)
 and bdo_to_ml attrs childs =
   let dir, attrs = extract_attr "dir" attrs in
-  let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
+  (*let dir = param_attr_to_ml (attr_to_ml "bdo" dir) in
   string "bdo" ^^ dir ^^ space ^^ attrs_to_ml "bdo" attrs
-  ^^ space ^^ childs_to_ml childs
-
+  ^^ space ^^ childs_to_ml childs*)
+  mkapply "bdo" ["dir", attrs_to_ml "bdo" [dir];
+		 "a", attrs_to_ml "bdo" attrs]
+	  [childs_to_ml childs]
+(*
 and figure_to_ml attrs childs = assert false
 
 and object_to_ml attrs childs = assert false
-
+ 
 and multimedia_to_ml name attrs childs =
   let src, attrs = extract_opt_attr "src" attrs in
   let srcs, childs = extract_els "source" childs in
@@ -253,13 +272,17 @@ and audio_to_ml attrs childs =
 
 and video_to_ml attrs childs =
   multimedia_to_ml "video" attrs childs
-
+ *)
 and area_to_ml attrs childs =
   let alt, attrs = extract_attr "alt" attrs in
-  let alt = param_attr_to_ml (attr_to_ml "area" alt) in
+  (*let alt = param_attr_to_ml (attr_to_ml "area" alt) in
   string "area" ^^ space ^^ alt ^^ space ^^ attrs_to_ml "area" attrs
-  ^^ space ^^ childs_to_ml childs
-
+  ^^ space ^^ childs_to_ml childs*)
+  mkapply "area" 
+	  ["alt", attrs_to_ml "area" [alt];
+	   "a", attrs_to_ml "area" attrs]
+	  [childs_to_ml childs]
+(*
 and table_to_ml attrs childs = (* note : caption etc... should be opt *)
   let caption, childs = extract_el "caption" childs in
   let caption = string "~caption:" ^^ parens (xml_to_ml caption) in
@@ -283,22 +306,33 @@ and table_to_ml attrs childs = (* note : caption etc... should be opt *)
 and fieldset_to_ml attrs childs = assert false
 
 and datalist_to_ml attrs childs = assert false
+ *)
 
 and optgroup_to_ml attrs childs = 
   let label, attrs = extract_attr "label" attrs in
-  let label = param_attr_to_ml (attr_to_ml "optgroup" label) in
+  (*let label = param_attr_to_ml (attr_to_ml "optgroup" label) in
   string "optgroup" ^^ space ^^ label ^^ space ^^ 
   attrs_to_ml "optgroup" attrs ^^ space^^ 
-  childs_to_ml childs
+  childs_to_ml childs*)
+  mkapply "optgroup" 
+	  ["label", attrs_to_ml "optgroup" [label];
+	  "a", attrs_to_ml "optgroup" attrs]
+	  [childs_to_ml childs]
+
 
 and command_to_ml attrs = function
   | [] ->
     let label, attrs = extract_attr "label" attrs in
-    let label = param_attr_to_ml (attr_to_ml "command" label) in
+    (*let label = param_attr_to_ml (attr_to_ml "command" label) in
     string "command" ^^ space ^^ label ^^ space ^^ 
-    attrs_to_ml "command" attrs ^^ string "()"
+    attrs_to_ml "command" attrs ^^ string "()"*)
+    mkapply "command"
+	    ["label", attrs_to_ml "command" [label];
+	     "a", attrs_to_ml "command" attrs]
+	    [unit]
   | _ -> failwith "Must not have childs"
 
+(*
 and menu_to_ml attrs childs = assert false
  *)
 
