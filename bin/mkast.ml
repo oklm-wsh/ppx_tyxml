@@ -31,5 +31,4 @@ let nil = mkconstruct "[]" None
 let rec mklist = function
   | [] -> nil
   | x :: xs ->
-     (*mktuple [x; mktuple [cons; mklist xs]]*)
      cons x (mklist xs)
