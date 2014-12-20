@@ -1,4 +1,10 @@
-open PPrint
+open Mkast
+
+let fmt_variant s =
+  Bytes.of_string s 
+  |> Bytes.capitalize
+  |> Bytes.map (fun c -> if c = '-' then '_' else c)
+  |> Bytes.to_string
 
 let extract_attrs name =
   List.partition
@@ -161,11 +167,11 @@ let attr_to_ml tag_name ((_, name), value) =
     | "stylesheet" -> "`Stylesheet"
     | "tag" -> "`Tag"
     | "up" -> "`Up"
-    | other -> "`Other \"" ^ other ^ "\""
+    | other -> "(`Other \"" ^ other ^ "\")"
   in
   let ml_attr_value = 
     match name with
-    | "autocomplete" -> autocomplete_value_to_ml value
+(*    | "autocomplete" -> autocomplete_value_to_ml value
     | "crossorigin" -> crossorigin_value_to_ml value
     | "dir" -> dir_value_to_ml value
     | "formmethod" -> formmethod_value_to_ml value
@@ -183,29 +189,29 @@ let attr_to_ml tag_name ((_, name), value) =
     | "shape" -> shape_value_to_ml value
     | "frameborder" -> frameborder_value_to_ml value
     | "scrolling" -> scrolling_value_to_ml value
-    | "rel" -> rel_value_to_ml value
-    | "async" -> "`Async"
-    | "autofocus" -> "`Autofocus"
-    | "autoplay" -> "`Autoplay"
-    | "muted" -> "`Muted"
-    | "controls" -> "`Muted"
-    | "novalidate" when tag_name = "form" -> "`Formnovalidate" (* formnovalidate and novalidate, issue here *)
-    | "novalidate" -> "`Novalidate"
-    | "hidden" -> "`Hidden"
-    | "ismap" -> "`Ismap"
-    | "loop" -> "`Loop"
-    | "open" -> "`Open"
-    | "pubdate" -> "`Pubdate"
-    | "required" -> "`Required"
-    | "reversed" -> "`Reversed"
-    | "scoped" -> "`Scoped"
-    | "seamless" -> "`Seamless"
-    | "checked" -> "`Checked"
-    | "multiple" -> "`Multiple"
-    | "selected" -> "`Selected"
-    | "disabled" -> "`Disabled"
-    | "readonly" -> "`ReadOnly"
-    | "defer" -> "`Defer"
+    | "rel" -> rel_value_to_ml value*)
+    | "async" (* -> "`Async" *)
+    | "autofocus" (* -> "`Autofocus" *)
+    | "autoplay" (* -> "`Autoplay" *)
+    | "muted" (* -> "`Muted" *)
+    | "controls" (* -> "`Controls" *)
+    (*| "novalidate" when tag_name = "form" -> "`Formnovalidate" (* formnovalidate and novalidate, issue here *)*)
+    | "novalidate" (* -> "`Novalidate" *)
+    | "hidden" (* -> "`Hidden" *)
+    | "ismap" (* -> "`Ismap" *)
+    | "loop" (* -> "`Loop" *)
+    | "open" (* -> "`Open" *)
+    | "pubdate" (* -> "`Pubdate" *)
+    | "required" (* -> "`Required" *)
+    | "reversed" (* -> "`Reversed" *)
+    | "scoped" (* -> "`Scoped" *)
+    | "seamless" (* -> "`Seamless" *)
+    | "checked" (* -> "`Checked" *)
+    | "multiple" (* -> "`Multiple" *)
+    | "selected" (* -> "`Selected" *)
+    | "disabled" (* -> "`Disabled" *)
+    | "readonly" (* -> "`ReadOnly" *)
+    | "defer" (* -> "`Defer" *) -> mkvariant (fmt_variant name)
     | "mediagroup"
     | "challenge"
     | "contenteditable"
@@ -310,8 +316,8 @@ let attr_to_ml tag_name ((_, name), value) =
     | "content"
 (* http_equiv *)
     | "style"
-    | "property" -> "\"" ^ value ^ "\""
-    | "high"
+    | "property" -> mkstring value(*"\"" ^ value ^ "\""*)
+(*    | "high"
     | "low"
     | "max"
     (* | "input_max" *)
@@ -331,7 +337,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "colspan"
     | "rowspan"
     | "height"
-    | "width" -> value
+    | "width" -> value*)
     | "action" (* formaction too *)
     | "icon"
     | "poster"
@@ -339,23 +345,27 @@ let attr_to_ml tag_name ((_, name), value) =
     | "cite"
     | "href"
     | "src"
-    | "data" -> "(uri_of_string \"" ^ value ^ "\")"
+    | "data" -> mkapply "uri_of_string" [] [mkstring value] (*"(uri_of_string \"" ^ value ^ "\")"*)
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
   in name, ml_attr_value
 
 let a_attr_to_ml (name, ml_attr_value) = 
-  string ("a_" ^ name ^ " " ^ ml_attr_value)
-
+  (*string ("a_" ^ name ^ " " ^ ml_attr_value)*)
+  mkapply ("a_" ^ name) [] [ml_attr_value]
+(*
 let param_attr_to_ml (name, ml_attr_value) =
   string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
 
 let opt_attr_to_ml name = function
   | Some a -> param_attr_to_ml (attr_to_ml name a) 
   | None -> string "" 
-
-let attrs_to_ml tag_name = function
+ *)
+let attrs_to_ml tag_name attrs = (*function
   | [] -> string "~a:[]"
   | attrs ->
      let ml_attrs = List.map (attr_to_ml tag_name) attrs 
                     |> List.map a_attr_to_ml in
-     string "~a:" ^^ OCaml.list (fun x -> x) ml_attrs
+     string "~a:" ^^ OCaml.list (fun x -> x) ml_attrs*)
+  (List.map (attr_to_ml tag_name) attrs)
+  |> List.map a_attr_to_ml
+  |> mklist 

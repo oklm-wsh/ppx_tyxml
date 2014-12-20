@@ -1,5 +1,5 @@
 (*open PPrint*)
-(*open Attr*)
+open Attr
 open Mkast
 
 type t = [
@@ -157,16 +157,16 @@ and childs_to_ml childs = (*function
 
 and nullary_to_ml name attrs = function
   | [] ->
-     mkapply name [(*("a", attrs)*)] [unit]
+     mkapply name [("a", attrs_to_ml name attrs)] [unit]
   | _ -> failwith "Must not have childs"
 
 and unary_to_ml name attrs = function
   | [x] ->
-     mkapply name [(*("a", attrs)*)] [xml_to_ml x]
+     mkapply name [("a", attrs_to_ml name attrs)] [xml_to_ml x]
   | _ -> failwith "Must have only one childs"
 
 and star_to_ml name attrs childs =
-  mkapply name [(*("a", attrs)*)] [childs_to_ml childs]
+  mkapply name [("a", attrs_to_ml name attrs)] [childs_to_ml childs]
 		      
 (*and nullary_to_ml name attrs = function
   | [] ->
