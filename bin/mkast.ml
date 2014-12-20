@@ -13,20 +13,23 @@ let mkconstant constant = Exp.constant constant
 
 let mkstring s = mkconstant (string s)
 
-let mkconstruct construct = Exp.construct (mkloc construct) None
+let mkconstruct construct param = Exp.construct (mkloc construct) param
+
+let mkvariant label = Exp.variant label None
 
 let mktuple tuple = Exp.tuple tuple
 
 let mkapply name attrs params =
   Exp.apply (mkident name) (attrs @ (List.map (fun a -> ("", a)) params))
 
-let unit = mkconstruct "()"
-let true_ = mkconstruct "true"
-let false_ = mkconstruct "false"
-let cons = mkconstruct "::"
-let nil = mkconstruct "[]"
+let unit = mkconstruct "()" None
+let true_ = mkconstruct "true" None
+let false_ = mkconstruct "false" None
+let cons hd tail = mkconstruct "::" (Some (mktuple [hd; tail]))
+let nil = mkconstruct "[]" None
 
 let rec mklist = function
   | [] -> nil
   | x :: xs ->
-     mktuple [x; mktuple [cons; mklist xs]]
+     (*mktuple [x; mktuple [cons; mklist xs]]*)
+     cons x (mklist xs)
