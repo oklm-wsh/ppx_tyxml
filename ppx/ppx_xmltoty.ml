@@ -13,7 +13,7 @@ let xmltoty_mapper _ =
 	  | PStr [{ pstr_desc =
 		      Pstr_eval 
 			({pexp_loc = loc;
-			  pexp_desc = Pexp_constant (Asttypes.Const_string (xml, None))}, _)
+			  pexp_desc = Pexp_constant (Asttypes.Const_string (xml, _))}, _)
 		 }] ->
 	     Xmltoty.xmltoty (`String (0, xml))
 	  | _ -> failwith "Usage : [%xmltoty string]")
