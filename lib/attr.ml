@@ -22,6 +22,32 @@ let extract_opt_attr name l =
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
 let attr_to_ml tag_name ((_, name), value) =
+  let rel_value_to_ml v =
+    match v with
+    | "alternate"
+    | "archives"
+    | "author"
+    | "bookmark"
+    | "external"
+    | "first"
+    | "help"
+    | "icon"
+    | "index"
+    | "last"
+    | "license"
+    | "next"
+    | "nofollow"
+    | "noreferrer"
+    | "pingback"
+    | "prefetch"
+    | "prev"
+    | "search"
+    | "sidebar"
+    | "stylesheet"
+    | "tag"
+    | "up" -> mkvariant (fmt_variant v) None
+    | other -> mkvariant "Other" (Some (mkstring other))
+  in
   let ml_attr_value = 
     match name with
     | "type" when List.exists ((=) tag_name) ["input"; "button"; "command"; "menu"] ->
@@ -43,8 +69,8 @@ let attr_to_ml tag_name ((_, name), value) =
     | "rules" (*-> rules_value_to_ml value*)
     | "shape" (*-> shape_value_to_ml value*)
     | "frameborder" (*-> frameborder_value_to_ml value*)
-    | "scrolling" (*-> scrolling_value_to_ml value*)
-    | "rel" (*-> rel_value_to_ml value*) -> mkvariant (fmt_variant value) None
+    | "scrolling" (*-> scrolling_value_to_ml value*) -> mkvariant (fmt_variant value) None
+    | "rel" -> rel_value_to_ml value
     | "async"
     | "autofocus"
     | "autoplay"
