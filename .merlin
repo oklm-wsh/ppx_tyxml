@@ -1,5 +1,9 @@
 S bin
+S lib
+S ppx
 
 B _build/bin
+B _build/lib
+B _build/ppx
 
 PKG xmlm compiler-libs.common
