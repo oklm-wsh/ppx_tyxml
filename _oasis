@@ -10,11 +10,16 @@ BuildTools:  ocamlbuild
 Library xmltoty
   Path:	lib
   BuildDepends:	xmlm, compiler-libs.common
-  Modules: Tag, Attr
+  Modules: Xmltoty, Tag, Attr
   InternalModules: Mkast
+
+Executable ppx_xmltoty
+  Path:	      .
+  BuildDepends: xmltoty
+  MainIs:     ppx/ppx_xmltoty.ml  
 
 Executable xmltoty
   Path:       .
   BuildDepends: xmltoty
   MainIs:     bin/main.ml
-  
+  CompiledObject: best
