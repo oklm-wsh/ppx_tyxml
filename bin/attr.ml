@@ -370,11 +370,11 @@ let a_attr_to_ml (name, ml_attr_value) =
 (*
 let param_attr_to_ml (name, ml_attr_value) =
   string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
-
-let opt_attr_to_ml name = function
-  | Some a -> param_attr_to_ml (attr_to_ml name a) 
-  | None -> string "" 
  *)
+(*let opt_attr_to_ml name = function
+  | Some a -> param_attr_to_ml (attr_to_ml name a) 
+  | None -> string "" *)
+
 let attrs_to_ml tag_name attrs =
   (List.map (attr_to_ml tag_name) attrs)
   |> List.map a_attr_to_ml

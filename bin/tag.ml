@@ -28,6 +28,11 @@ let extract_el name l =
   | [el], l -> el, l
   | _ -> failwith ("Must have only one " ^ name)
 
+let extract_opt_el name l =
+  match extract_els name l with
+  | [el], l -> Some el, l
+  | _ -> None, l
+
 let rec xml_to_ml = function
   | `El (tag, childs) ->
     tag_to_ml tag childs
@@ -44,12 +49,12 @@ and tag_to_ml ((_, name), attrs) childs =
 (*    | "svg" -> svg_to_ml*)
     | "bdo" -> bdo_to_ml
 (*    | "figure" -> figure_to_ml
-    | "object" -> object_to_ml
+    | "object" -> object_to_ml*)
     | "audio" -> audio_to_ml
     | "video" -> video_to_ml
-    | "area" -> area_to_ml*)
-(*    | "table" -> table_to_ml
-    | "fieldset" -> fieldset_to_ml
+    | "area" -> area_to_ml
+    | "table" -> table_to_ml
+(*    | "fieldset" -> fieldset_to_ml
     | "datalist" -> datalist_to_ml*)
     | "optgroup" -> optgroup_to_ml
     | "command" -> command_to_ml
@@ -160,25 +165,6 @@ and unary_to_ml name attrs = function
 
 and star_to_ml name attrs childs =
   mkapply name [("a", attrs_to_ml name attrs)] [childs_to_ml childs]
-		      
-(*and nullary_to_ml name attrs = function
-  | [] ->
-    string name ^^ space 
-    ^^ attrs_to_ml name attrs ^^ space ^^ string "()"
-  | _ -> failwith "Must not have childs."*)
-
-(*and unary_to_ml name attrs = function
-  | [x] ->
-    string name ^^ space 
-    ^^ attrs_to_ml name attrs ^^ space
-    ^^ parens (xml_to_ml x)
-  | _ -> failwith (name ^ " Must have only one child.")*)
-
-(*and star_to_ml name attrs childs =
-  string name ^^ space ^^ 
-    attrs_to_ml name attrs ^^ space 
-    ^^ childs_to_ml childs*)
-
 		    
 and html_to_ml attrs childs =
   let head, childs = extract_el "head" childs in
@@ -230,7 +216,7 @@ and bdo_to_ml attrs childs =
   mkapply "bdo" ["dir", attrs_to_ml "bdo" [dir];
 		 "a", attrs_to_ml "bdo" attrs]
 	  [childs_to_ml childs]
-(*
+
 and figure_to_ml attrs childs = assert false
 
 and object_to_ml attrs childs = assert false
@@ -238,48 +224,61 @@ and object_to_ml attrs childs = assert false
 and multimedia_to_ml name attrs childs =
   let src, attrs = extract_opt_attr "src" attrs in
   let srcs, childs = extract_els "source" childs in
-  let src = opt_attr_to_ml name src in
-  string name ^^ space ^^ src ^^ space ^^ string "~srcs:" 
-  ^^ childs_to_ml srcs ^^ space^^ attrs_to_ml name attrs ^^ space
-  ^^ childs_to_ml childs
+  let attrs =
+    ["srcs", childs_to_ml srcs;
+     "a", attrs_to_ml name attrs]
+  in
+  let attrs = 
+    match src with
+    | Some a -> ("src", attrs_to_ml name [a]) :: attrs
+    | None -> attrs
+  in
+  mkapply name
+	  attrs
+	  [childs_to_ml childs]
 
 and audio_to_ml attrs childs =
   multimedia_to_ml "audio" attrs childs
 
 and video_to_ml attrs childs =
   multimedia_to_ml "video" attrs childs
- *)
+
 and area_to_ml attrs childs =
   let alt, attrs = extract_attr "alt" attrs in
   mkapply "area" 
 	  ["alt", attrs_to_ml "area" [alt];
 	   "a", attrs_to_ml "area" attrs]
 	  [childs_to_ml childs]
-(*
-and table_to_ml attrs childs = (* note : caption etc... should be opt *)
-  let caption, childs = extract_el "caption" childs in
-  let caption = string "~caption:" ^^ parens (xml_to_ml caption) in
+
+and table_to_ml attrs childs =
+  let caption, childs = extract_opt_el "caption" childs in
   let columns, childs= extract_els "colgroup" childs in
-  let columns = string "~columns:" ^^ childs_to_ml columns in
   let thead, childs = extract_el "thead" childs in
-  let thead = string "~thead:" ^^ parens (xml_to_ml thead) in
   let tfoot, childs = extract_el "tfoot" childs in
-  let tfoot = string "~tfoot:" ^^ parens (xml_to_ml tfoot) in
   let name = 
     if List.exists (tag_name_is "tr") childs then
       "table"
     else
       "tablex"
   in
-  string name ^^ space ^^
-  caption ^^ space ^^ columns ^^ space ^^
-  thead ^^ space ^^ tfoot ^^ space ^^
-  attrs_to_ml "table" attrs ^^ space ^^ childs_to_ml childs
+  let attrs =
+    ["columns", childs_to_ml columns;
+     "thead", xml_to_ml thead;
+     "tfoot", xml_to_ml tfoot;
+     "a", attrs_to_ml name attrs]
+  in
+  let attrs =
+    match caption with
+    | Some a -> ("caption", xml_to_ml a) :: attrs
+    | None -> attrs
+  in
+  mkapply name
+	  attrs
+	  [childs_to_ml childs]
 
 and fieldset_to_ml attrs childs = assert false
 
 and datalist_to_ml attrs childs = assert false
- *)
 
 and optgroup_to_ml attrs childs = 
   let label, attrs = extract_attr "label" attrs in
@@ -287,7 +286,6 @@ and optgroup_to_ml attrs childs =
 	  ["label", attrs_to_ml "optgroup" [label];
 	  "a", attrs_to_ml "optgroup" attrs]
 	  [childs_to_ml childs]
-
 
 and command_to_ml attrs = function
   | [] ->
@@ -298,23 +296,5 @@ and command_to_ml attrs = function
 	    [unit]
   | _ -> failwith "Must not have childs"
 
-(*
 and menu_to_ml attrs childs = assert false
- *)
 
-(*
-
-let nullary_to_ml name attrs = function
-  | [] ->
-     mkapply name [("a", attrs)] [unit]
-  | _ -> failwith "Must not have childs"
-
-let unary_to_ml name attrs = function
-  | [x] ->
-     mkapply name [("a", attrs)] [x]
-  | _ -> failwith "Must have only one childs"
-
-let star_to_ml name attrs childs =
-  mkapply name [("a", attrs)] childs
-
- *)
