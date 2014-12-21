@@ -5,10 +5,16 @@ Synopsis:    Take a .html or .svg file and output a .ml file containing a
   TyXML tree.
 Authors:     Eyyüb SARI (Shab Team)
 License:     LGPL
+BuildTools:  ocamlbuild
+
+Library xmltoty
+  Path:	lib
+  BuildDepends:	xmlm, compiler-libs.common
+  Modules: Tag, Attr
+  InternalModules: Mkast
 
 Executable xmltoty
   Path:       .
-  BuildDepends: xmlm, compiler-libs.common
-  BuildTools: ocamlbuild
+  BuildDepends: xmltoty
   MainIs:     bin/main.ml
   
