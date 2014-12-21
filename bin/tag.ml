@@ -203,14 +203,16 @@ and img_to_ml attrs = function
 	     "a", attrs_to_ml "img" attrs]
 	    [unit]
   | _ -> failwith "Must not have childs"
-(*
+
 and svg_to_ml attrs childs =
   let xmlns, attrs = extract_opt_attr "xmlns" attrs in
-  let xmlns = opt_attr_to_ml "svg" xmlns
+  let attrs =
+    match xmlns with
+    | Some a -> ("xmlns", attrs_to_ml "svg" [a]) :: [("a", attrs_to_ml "svg" attrs)]
+    | None -> [("a", attrs_to_ml "svg" attrs)]
   in
-  string "svg" ^^ space ^^ xmlns ^^ space ^^ attrs_to_ml "svg" attrs
-  ^^ space ^^ childs_to_ml childs
- *)
+  mkapply "svg" attrs [childs_to_ml childs]
+
 and bdo_to_ml attrs childs =
   let dir, attrs = extract_attr "dir" attrs in
   mkapply "bdo" ["dir", attrs_to_ml "bdo" [dir];
@@ -252,7 +254,7 @@ and area_to_ml attrs childs =
 
 and table_to_ml attrs childs =
   let caption, childs = extract_opt_el "caption" childs in
-  let columns, childs= extract_els "colgroup" childs in
+  let columns, childs = extract_els "colgroup" childs in
   let thead, childs = extract_el "thead" childs in
   let tfoot, childs = extract_el "tfoot" childs in
   let name = 

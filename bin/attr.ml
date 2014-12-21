@@ -211,7 +211,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "autoplay"
     | "muted"
     | "controls"
-    (*| "novalidate" when tag_name = "form" -> "`Formnovalidate" (* formnovalidate and novalidate, issue here *)*)
+    | "novalidate" when tag_name = "form" -> mkvariant "Formnovalidate" None (* formnovalidate and novalidate, issue here*)
     | "novalidate"
     | "hidden"
     | "ismap"
@@ -367,13 +367,6 @@ let attr_to_ml tag_name ((_, name), value) =
 
 let a_attr_to_ml (name, ml_attr_value) = 
   mkapply ("a_" ^ name) [] [ml_attr_value]
-(*
-let param_attr_to_ml (name, ml_attr_value) =
-  string ("~" ^ name ^ ":" ^ "(" ^ ml_attr_value ^ ")")
- *)
-(*let opt_attr_to_ml name = function
-  | Some a -> param_attr_to_ml (attr_to_ml name a) 
-  | None -> string "" *)
 
 let attrs_to_ml tag_name attrs =
   (List.map (attr_to_ml tag_name) attrs)
