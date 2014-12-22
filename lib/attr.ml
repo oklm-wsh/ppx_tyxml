@@ -52,24 +52,20 @@ let attr_to_ml tag_name ((_, name), value) =
     match name with
     | "type" when List.exists ((=) tag_name) ["input"; "button"; "command"; "menu"] ->
        mkvariant (fmt_variant value) None
-    | "autocomplete" (*-> autocomplete_value_to_ml value*)
-    | "crossorigin" (*-> crossorigin_value_to_ml value*)
-    | "dir" (*-> dir_value_to_ml value*)
-    | "formmethod" (*-> formmethod_value_to_ml value*)
-    | "method" (*-> method_value_to_ml value*)
-    | "preload" (*-> preload_value_to_ml value*)
-    | "wrap" (*-> wrap_value_to_ml value*)
-    | "xmlns" (*-> xmlns_value_to_ml value
-    | "type" when tag_name = "input" -> input_type_value_to_ml value
-    | "type" when tag_name = "button" -> button_type_value_to_ml value
-    | "type" when tag_name = "command" -> command_type_value_to_ml value
-    | "type" when tag_name = "menu" -> menu_type_value_to_ml value*)
-    | "align" (*-> align_value_to_ml value*)
-    | "scope" (*-> scope_value_to_ml value*)
-    | "rules" (*-> rules_value_to_ml value*)
-    | "shape" (*-> shape_value_to_ml value*)
-    | "frameborder" (*-> frameborder_value_to_ml value*)
-    | "scrolling" (*-> scrolling_value_to_ml value*) -> mkvariant (fmt_variant value) None
+    | "autocomplete"
+    | "crossorigin"
+    | "dir"
+    | "formmethod"
+    | "method"
+    | "preload"
+    | "wrap"
+    | "xmlns"
+    | "align"
+    | "scope"
+    | "rules"
+    | "shape"
+    | "frameborder"
+    | "scrolling" -> mkvariant (fmt_variant value) None
     | "rel" -> rel_value_to_ml value
     | "async"
     | "autofocus"
