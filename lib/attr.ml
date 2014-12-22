@@ -1,5 +1,10 @@
 open Mkast
 
+let spaces = Str.regexp " +"
+
+let split_spaces =
+  Str.split spaces
+
 let fmt_variant s =
   Bytes.of_string s 
   |> Bytes.capitalize
@@ -22,6 +27,7 @@ let extract_opt_attr name l =
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
 let attr_to_ml tag_name ((_, name), value) =
+  let _ = print_endline name in
   let rel_value_to_ml v =
     match v with
     | "alternate"
@@ -223,6 +229,10 @@ let attr_to_ml tag_name ((_, name), value) =
     | "href"
     | "src"
     | "data" -> mkapply "uri_of_string" [] [mkstring value]
+    | "sandbox" ->
+       split_spaces value
+       |> List.map (fun v -> mkvariant (fmt_variant v) None)
+       |> mklist
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
   in name, ml_attr_value
 

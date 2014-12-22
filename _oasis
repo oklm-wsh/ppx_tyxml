@@ -9,7 +9,7 @@ BuildTools:  ocamlbuild
 
 Library xmltoty
   Path:	lib
-  BuildDepends:	xmlm, compiler-libs.common
+  BuildDepends:	xmlm, compiler-libs.common, str
   Modules: Xmltoty, Tag, Attr
   InternalModules: Mkast
 
