@@ -1,9 +1,14 @@
 open Mkast
 
-let spaces = Str.regexp " +"
+let regexp_spaces = Str.regexp " +"
+
+let regexp_x = Str.regexp "x"
 
 let split_spaces =
-  Str.split spaces
+  Str.split regexp_spaces
+
+let split_x =
+  Str.split regexp_x
 
 let fmt_variant s =
   Bytes.of_string s 
@@ -27,7 +32,6 @@ let extract_opt_attr name l =
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
 let attr_to_ml tag_name ((_, name), value) =
-  let _ = print_endline name in
   let rel_value_to_ml v =
     match v with
     | "alternate"
@@ -53,6 +57,24 @@ let attr_to_ml tag_name ((_, name), value) =
     | "tag"
     | "up" -> mkvariant (fmt_variant v) None
     | other -> mkvariant "Other" (Some (mkstring other))
+  in
+  let sandbox_value_to_ml value =
+    split_spaces value
+    |> List.map (fun v -> mkvariant (fmt_variant v) None)
+    |> mklist
+  in
+  let sizes_value_to_ml value =
+    match value with
+    | "any" -> mkvariant "Any" None
+    | sizes ->
+       let l =
+	 split_spaces sizes
+	 |> List.map split_x
+	 |> List.map (List.map (fun x -> mkint (int_of_string x)))
+	 |> List.map mktuple
+	 |> mklist
+       in
+       mkvariant "Sizes" (Some l)
   in
   let ml_attr_value = 
     match name with
@@ -229,10 +251,8 @@ let attr_to_ml tag_name ((_, name), value) =
     | "href"
     | "src"
     | "data" -> mkapply "uri_of_string" [] [mkstring value]
-    | "sandbox" ->
-       split_spaces value
-       |> List.map (fun v -> mkvariant (fmt_variant v) None)
-       |> mklist
+    | "sandbox" -> sandbox_value_to_ml value
+    | "sizes" -> sizes_value_to_ml value
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
   in name, ml_attr_value
 
