@@ -58,6 +58,11 @@ let attr_to_ml tag_name ((_, name), value) =
     | "up" -> mkvariant (fmt_variant v) None
     | other -> mkvariant "Other" (Some (mkstring other))
   in
+  let bool_to_ml = function
+    | "true" -> true_
+    | "false" -> false_
+    | _ -> failwith "Must be true or false."
+  in
   let sandbox_value_to_ml value =
     split_spaces value
     |> List.map (fun v -> mkvariant (fmt_variant v) None)
@@ -75,6 +80,12 @@ let attr_to_ml tag_name ((_, name), value) =
 	 |> mklist
        in
        mkvariant "Sizes" (Some l)
+  in
+  let name =
+    match name with
+    | "input" -> "input_" ^ name
+    | "form" -> "form" ^ name
+    | _ -> name
   in
   let ml_attr_value = 
     match name with
@@ -225,9 +236,9 @@ let attr_to_ml tag_name ((_, name), value) =
     | "high"
     | "low"
     | "max"
-    (* | "input_max" *)
+    | "input_max"
     | "min"
-    (* | "input_min" *)
+    | "input_min"
     | "optimum"
     | "step"
     | "span" -> mkint (int_of_string value)
@@ -251,6 +262,9 @@ let attr_to_ml tag_name ((_, name), value) =
     | "href"
     | "src"
     | "data" -> mkapply "uri_of_string" [] [mkstring value]
+    | "draggable"
+    | "contenteditable"
+    | "spellcheck" -> bool_to_ml value
     | "sandbox" -> sandbox_value_to_ml value
     | "sizes" -> sizes_value_to_ml value
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
