@@ -82,14 +82,24 @@ let attr_to_ml tag_name ((_, name), value) =
        mkvariant "Sizes" (Some l)
   in
   let name =
-    match tag_name with
-    | "input" -> "input_" ^ name
-    | "form" when name <> "form" -> "form" ^ name
-    | _ -> name
+    (* UUUUUUUGLY *)
+    (match tag_name with
+     | "input" -> "input_" ^ name
+     | "button"
+     | "command"
+     | "menu" when name = "type" -> tag_name ^ "_type"
+     | _ when name = "type" -> "mime_type"
+     | _ -> name )
+    |> Bytes.of_string
+    |> Bytes.map (fun c -> if c = '-' then '_' else c)
+    |> Bytes.to_string
   in
   let ml_attr_value = 
     match name with
-    | "type" when List.exists ((=) tag_name) ["input"; "button"; "command"; "menu"] ->
+    | "input_type"
+    | "button_type"
+    | "command_type"
+    | "menu_type" ->
        mkvariant (fmt_variant value) None
     | "autocomplete"
     | "crossorigin"
@@ -111,7 +121,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "autoplay"
     | "muted"
     | "controls"
-    | "novalidate" when tag_name = "form" -> mkvariant "Formnovalidate" None (* formnovalidate and novalidate, issue here*)
+    | "formnovalidate" -> mkvariant "Formnovalidate" None
     | "novalidate"
     | "hidden"
     | "ismap"
@@ -130,8 +140,9 @@ let attr_to_ml tag_name ((_, name), value) =
     | "defer" -> mkvariant (fmt_variant name) None
     | "mediagroup"
     | "challenge"
-    | "contenteditable"
     | "form"
+    | "formenctype"
+    | "formtarget"
     | "enctyp"
     | "keytype"
     | "list"
@@ -142,7 +153,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "class"
     | "id"
     | "title"
-    (* | xml-lang *)
+    | "xml_lang"
     | "onabort"
     | "onafterprint"
     | "onbeforeprint"
@@ -215,11 +226,11 @@ let attr_to_ml tag_name ((_, name), value) =
     | "version"
     | "charset"
     | "hreflang"
-    | "type"     (* WARNING !!! should be | mime-type*) 
+    | "mime_type"
     | "datetime"
     | "for"
     | "name"
-    (* | text-value *)
+    | "text_value"
     | "value"
     | "label"
     | "axis"
@@ -230,7 +241,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "codetype" 
     | "target"
     | "content"
-(* http_equiv *)
+    | "http_equiv"
     | "style"
     | "property" -> mkstring value
     | "high"
@@ -254,6 +265,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "rowspan"
     | "height"
     | "width" -> mkfloat value
+    | "formaction"
     | "action" (* formaction too *)
     | "icon"
     | "poster"
