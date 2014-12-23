@@ -1,8 +1,7 @@
 OASISFormat: 0.4
-Name:        xmltoty
+Name:        ppx_tyxml
 Version:     0.1
-Synopsis:    Take a .html or .svg file and output a .ml file containing a
-  TyXML tree.
+Synopsis:    ppx extension, take a HTML string and outputs TyXML functions.
 Authors:     Eyyüb SARI (Shab Team)
 License:     LGPL
 BuildTools:  ocamlbuild
@@ -13,13 +12,8 @@ Library xmltoty
   Modules: Xmltoty, Tag, Attr
   InternalModules: Mkast
 
-Executable ppx_xmltoty
+Executable ppx_tyxml
   Path:	      .
   BuildDepends: xmltoty
-  MainIs:     ppx/ppx_xmltoty.ml  
-
-Executable xmltoty
-  Path:       .
-  BuildDepends: xmltoty
-  MainIs:     bin/main.ml
+  MainIs:     ppx/ppx_tyxml.ml  
   CompiledObject: best

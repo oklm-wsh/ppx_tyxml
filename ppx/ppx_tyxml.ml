@@ -2,13 +2,13 @@ open Parsetree
 open Ast_helper
 open Ast_mapper
 
-let xmltoty_mapper _ = 
+let tyxml_mapper _ = 
   { default_mapper with
     expr =
       fun mapper expr ->
       (match expr with
        | { pexp_desc =
-	     Pexp_extension ({txt = "xmltoty"; loc}, pstr)} ->
+	     Pexp_extension ({txt = "tyxml"; loc}, pstr)} ->
 	  (match pstr with
 	  | PStr [{ pstr_desc =
 		      Pstr_eval 
@@ -16,9 +16,8 @@ let xmltoty_mapper _ =
 			  pexp_desc = Pexp_constant (Asttypes.Const_string (xml, _))}, _)
 		 }] ->
 	     Xmltoty.xmltoty (`String (0, xml))
-	  | _ -> failwith "Usage : [%xmltoty string]")
-       | _ -> default_mapper.expr mapper expr)
-	
+	  | _ -> failwith "Usage : [%tyxml string]")
+       | _ -> default_mapper.expr mapper expr)	
   }
 
-let () = register "xmltoty" xmltoty_mapper
+let () = register "tyxml" tyxml_mapper
