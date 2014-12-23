@@ -82,9 +82,9 @@ let attr_to_ml tag_name ((_, name), value) =
        mkvariant "Sizes" (Some l)
   in
   let name =
-    match name with
+    match tag_name with
     | "input" -> "input_" ^ name
-    | "form" -> "form" ^ name
+    | "form" when name <> "form" -> "form" ^ name
     | _ -> name
   in
   let ml_attr_value = 
