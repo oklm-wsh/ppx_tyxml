@@ -266,7 +266,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "height"
     | "width" -> mkfloat value
     | "formaction"
-    | "action" (* formaction too *)
+    | "action"
     | "icon"
     | "poster"
     | "manifest"

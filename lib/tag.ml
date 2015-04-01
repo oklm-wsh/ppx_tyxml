@@ -33,16 +33,21 @@ let extract_opt_el name l =
   | [el], l -> Some el, l
   | _ -> None, l
 
-let rec xml_to_ml = function
-  | `El (tag, childs) ->
-    tag_to_ml tag childs
+let rec xml_to_ml ?input = function
+  | `El (((_, name),_) as tag, childs) ->
+     (match input with
+      | Some input ->
+	 let (l, c) = Xmlm.pos input in
+(*	 Printf.printf "L : %d; C : %d Name %s" l c name*) ()
+      | _ -> ());
+     tag_to_ml tag childs
   | `Data s ->
      mkapply "pcdata" [] [mkstring s]
 
 and tag_to_ml ((_, name), attrs) childs =
   let fun_to_ml =
     match name with
-  | "html" -> html_to_ml
+    | "html" -> html_to_ml
     | "head" -> head_to_ml
     | "link" -> link_to_ml
     | "img" -> img_to_ml
