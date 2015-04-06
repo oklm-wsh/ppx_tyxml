@@ -31,7 +31,7 @@ let extract_opt_attr name l =
   | [], l -> None, l
   | _ -> failwith ("Must have only one " ^ name ^ "attr.")
 
-let attr_to_ml tag_name ((_, name), value) =
+let attr_to_ml pos tag_name ((_, name), value) =
   let rel_value_to_ml v =
     match v with
     | "alternate"
@@ -55,31 +55,31 @@ let attr_to_ml tag_name ((_, name), value) =
     | "sidebar"
     | "stylesheet"
     | "tag"
-    | "up" -> mkvariant (fmt_variant v) None
-    | other -> mkvariant "Other" (Some (mkstring other))
+    | "up" -> mkvariant pos (fmt_variant v) None
+    | other -> mkvariant pos "Other" (Some (mkstring other))
   in
   let bool_to_ml = function
-    | "true" -> true_
-    | "false" -> false_
+    | "true" -> true_ pos
+    | "false" -> false_ pos
     | _ -> failwith "Must be true or false."
   in
   let sandbox_value_to_ml value =
     split_spaces value
-    |> List.map (fun v -> mkvariant (fmt_variant v) None)
-    |> mklist
+    |> List.map (fun v -> mkvariant pos (fmt_variant v) None)
+    |> mklist pos
   in
   let sizes_value_to_ml value =
     match value with
-    | "any" -> mkvariant "Any" None
+    | "any" -> mkvariant pos "Any" None
     | sizes ->
        let l =
 	 split_spaces sizes
 	 |> List.map split_x
 	 |> List.map (List.map (fun x -> mkint (int_of_string x)))
-	 |> List.map mktuple
-	 |> mklist
+	 |> List.map (mktuple pos)
+	 |> mklist pos
        in
-       mkvariant "Sizes" (Some l)
+       mkvariant pos "Sizes" (Some l)
   in
   let name =
     (* UUUUUUUGLY *)
@@ -100,7 +100,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "button_type"
     | "command_type"
     | "menu_type" ->
-       mkvariant (fmt_variant value) None
+       mkvariant pos (fmt_variant value) None
     | "autocomplete"
     | "crossorigin"
     | "dir"
@@ -114,14 +114,14 @@ let attr_to_ml tag_name ((_, name), value) =
     | "rules"
     | "shape"
     | "frameborder"
-    | "scrolling" -> mkvariant (fmt_variant value) None
+    | "scrolling" -> mkvariant pos (fmt_variant value) None
     | "rel" -> rel_value_to_ml value
     | "async"
     | "autofocus"
     | "autoplay"
     | "muted"
     | "controls"
-    | "formnovalidate" -> mkvariant "Formnovalidate" None
+    | "formnovalidate" -> mkvariant pos "Formnovalidate" None
     | "novalidate"
     | "hidden"
     | "ismap"
@@ -137,7 +137,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "selected"
     | "disabled"
     | "readonly"
-    | "defer" -> mkvariant (fmt_variant name) None
+    | "defer" -> mkvariant pos (fmt_variant name) None
     | "mediagroup"
     | "challenge"
     | "form"
@@ -273,7 +273,7 @@ let attr_to_ml tag_name ((_, name), value) =
     | "cite"
     | "href"
     | "src"
-    | "data" -> mkapply "uri_of_string" [] [mkstring value]
+    | "data" -> mkapply pos "uri_of_string" [] [mkstring value]
     | "draggable"
     | "contenteditable"
     | "spellcheck" -> bool_to_ml value
@@ -282,10 +282,10 @@ let attr_to_ml tag_name ((_, name), value) =
     | _ -> failwith ("Unkown attr " ^ name ^ ".")
   in name, ml_attr_value
 
-let a_attr_to_ml (name, ml_attr_value) = 
-  mkapply ("a_" ^ name) [] [ml_attr_value]
+let a_attr_to_ml pos (name, ml_attr_value) = 
+  mkapply pos ("a_" ^ name) [] [ml_attr_value]
 
-let attrs_to_ml tag_name attrs =
-  (List.map (attr_to_ml tag_name) attrs)
-  |> List.map a_attr_to_ml
-  |> mklist 
+let attrs_to_ml pos tag_name attrs =
+  (List.map (attr_to_ml pos tag_name) attrs)
+  |> List.map (a_attr_to_ml pos)
+  |> mklist pos

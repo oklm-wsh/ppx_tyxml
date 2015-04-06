@@ -2,8 +2,8 @@ open Attr
 open Mkast
 
 type t = [
-  | `El of Xmlm.tag * t list
-  | `Data of string
+  | `El of Xmlm.pos * Xmlm.tag * t list
+  | `Data of Xmlm.pos * string
 ]
 
 let tag_name (((_, name), _) : Xmlm.tag) = name
@@ -15,12 +15,12 @@ let is_el = function
 let is_data d = not (is_el d)
 
 let tag_name_is name = function
-  | `El (tag, _) -> tag_name tag = name
+  | `El (_, tag, _) -> tag_name tag = name
   | _ -> false
 
 let extract_els name =
   List.partition 
-    (function `El (e, _) -> tag_name e = name
+    (function `El (_, e, _) -> tag_name e = name
             |  _ -> false)
 
 let extract_el name l =
@@ -34,17 +34,12 @@ let extract_opt_el name l =
   | _ -> None, l
 
 let rec xml_to_ml ?input = function
-  | `El (((_, name),_) as tag, childs) ->
-     (match input with
-      | Some input ->
-	 let (l, c) = Xmlm.pos input in
-(*	 Printf.printf "L : %d; C : %d Name %s" l c name*) ()
-      | _ -> ());
-     tag_to_ml tag childs
-  | `Data s ->
-     mkapply "pcdata" [] [mkstring s]
+  | `El (pos, (((_, name),_) as tag), childs) ->
+     tag_to_ml pos tag childs
+  | `Data (pos, s) ->
+     mkapply pos "pcdata" [] [mkstring s]
 
-and tag_to_ml ((_, name), attrs) childs =
+and tag_to_ml pos ((_, name), attrs) childs =
   let fun_to_ml =
     match name with
     | "html" -> html_to_ml
@@ -153,111 +148,111 @@ and tag_to_ml ((_, name), attrs) childs =
     | "style" -> star_to_ml name
     | "output" -> star_to_ml "output_elt"
     | _ -> failwith ("Unknown tag " ^ name ^ ".")
-  in fun_to_ml attrs childs
+  in fun_to_ml pos attrs childs
 
-and childs_to_ml childs =
-  mklist (List.map xml_to_ml childs)
+and childs_to_ml pos childs =
+  mklist pos (List.map xml_to_ml childs)
 
-and nullary_to_ml name attrs = function
+and nullary_to_ml name pos attrs = function
   | [] ->
-     mkapply name [("a", attrs_to_ml name attrs)] [unit]
+     mkapply pos name [("a", attrs_to_ml pos name attrs)] [unit pos]
   | _ -> failwith "Must not have childs"
 
-and unary_to_ml name attrs = function
+and unary_to_ml name pos attrs = function
   | [x] ->
-     mkapply name [("a", attrs_to_ml name attrs)] [xml_to_ml x]
+     mkapply pos name [("a", attrs_to_ml pos name attrs)] [xml_to_ml x]
   | _ -> failwith "Must have only one childs"
 
-and star_to_ml name attrs childs =
-  mkapply name [("a", attrs_to_ml name attrs)] [childs_to_ml childs]
+and star_to_ml name pos attrs childs =
+  mkapply pos name [("a", attrs_to_ml pos name attrs)] [childs_to_ml pos childs]
 		    
-and html_to_ml attrs childs =
+and html_to_ml pos attrs childs =
   let head, childs = extract_el "head" childs in
   let body, childs = extract_el "body" childs in
   if List.length childs = 0 then
-    mkapply "html" 
-	    ["a", attrs_to_ml "html" attrs] 
+    mkapply pos "html" 
+	    ["a", attrs_to_ml pos "html" attrs] 
 	    [xml_to_ml head; xml_to_ml body]
   else
     failwith "<html> must only have <head> and <body> as childs"
 
-and head_to_ml attrs childs = 
+and head_to_ml pos attrs childs = 
   let title, childs = extract_el "title" childs in
-  mkapply "head" 
-	  ["a", attrs_to_ml "head" attrs]
-	  [xml_to_ml title; childs_to_ml childs]
+  mkapply pos "head" 
+	  ["a", attrs_to_ml pos "head" attrs]
+	  [xml_to_ml title; childs_to_ml pos childs]
 
-and link_to_ml attrs = function
+and link_to_ml pos attrs = function
   | [] ->
     let rel, attrs = extract_attr "rel" attrs in
     let href, attrs = extract_attr "href" attrs in
-    mkapply "link" 
-	    ["rel", attrs_to_ml "link" [rel];
-	     "href", attrs_to_ml "link" [href];
-	     "a", attrs_to_ml "link" attrs]
-	    [unit]
+    mkapply pos "link" 
+	    ["rel", attrs_to_ml pos "link" [rel];
+	     "href", attrs_to_ml pos "link" [href];
+	     "a", attrs_to_ml pos "link" attrs]
+	    [unit pos]
   | _ -> failwith "Must not have childs"
 
-and img_to_ml attrs = function
+and img_to_ml pos attrs = function
   | [] ->
     let src, attrs = extract_attr "src" attrs in
     let alt, attrs = extract_attr "alt" attrs in
-    mkapply "link" 
-	    ["src", attrs_to_ml "img" [src];
-	     "alt", attrs_to_ml "img" [alt];
-	     "a", attrs_to_ml "img" attrs]
-	    [unit]
+    mkapply pos "link" 
+	    ["src", attrs_to_ml pos "img" [src];
+	     "alt", attrs_to_ml pos "img" [alt];
+	     "a", attrs_to_ml pos "img" attrs]
+	    [unit pos]
   | _ -> failwith "Must not have childs"
 
-and svg_to_ml attrs childs =
+and svg_to_ml pos attrs childs =
   let xmlns, attrs = extract_opt_attr "xmlns" attrs in
   let attrs =
     match xmlns with
-    | Some a -> ("xmlns", attrs_to_ml "svg" [a]) :: [("a", attrs_to_ml "svg" attrs)]
-    | None -> [("a", attrs_to_ml "svg" attrs)]
+    | Some a -> ("xmlns", attrs_to_ml pos "svg" [a]) :: [("a", attrs_to_ml pos "svg" attrs)]
+    | None -> [("a", attrs_to_ml pos "svg" attrs)]
   in
-  mkapply "svg" attrs [childs_to_ml childs]
+  mkapply pos "svg" attrs [childs_to_ml pos childs]
 
-and bdo_to_ml attrs childs =
+and bdo_to_ml pos attrs childs =
   let dir, attrs = extract_attr "dir" attrs in
-  mkapply "bdo" ["dir", attrs_to_ml "bdo" [dir];
-		 "a", attrs_to_ml "bdo" attrs]
-	  [childs_to_ml childs]
+  mkapply pos "bdo" ["dir", attrs_to_ml pos "bdo" [dir];
+		 "a", attrs_to_ml pos "bdo" attrs]
+	  [childs_to_ml pos childs]
 
-and figure_to_ml attrs childs = assert false
+and figure_to_ml pos attrs childs = assert false
 
-and object_to_ml attrs childs = assert false
+and object_to_ml pos attrs childs = assert false
  
-and multimedia_to_ml name attrs childs =
+and multimedia_to_ml name pos attrs childs =
   let src, attrs = extract_opt_attr "src" attrs in
   let srcs, childs = extract_els "source" childs in
   let attrs =
-    ["srcs", childs_to_ml srcs;
-     "a", attrs_to_ml name attrs]
+    ["srcs", childs_to_ml pos srcs;
+     "a", attrs_to_ml pos name attrs]
   in
   let attrs = 
     match src with
-    | Some a -> ("src", attrs_to_ml name [a]) :: attrs
+    | Some a -> ("src", attrs_to_ml pos name [a]) :: attrs
     | None -> attrs
   in
-  mkapply name
+  mkapply pos name
 	  attrs
-	  [childs_to_ml childs]
+	  [childs_to_ml pos childs]
 
-and audio_to_ml attrs childs =
-  multimedia_to_ml "audio" attrs childs
+and audio_to_ml pos attrs childs =
+  multimedia_to_ml "audio" pos attrs childs
 
-and video_to_ml attrs childs =
-  multimedia_to_ml "video" attrs childs
+and video_to_ml pos attrs childs =
+  multimedia_to_ml "video" pos attrs childs
 
-and area_to_ml attrs childs =
+and area_to_ml pos attrs childs =
   let alt, attrs = extract_attr "alt" attrs in
-  mkapply "area" 
-	  ["alt", attrs_to_ml "area" [alt];
-	   "a", attrs_to_ml "area" attrs]
-	  [childs_to_ml childs]
+  mkapply pos "area" 
+	  ["alt", attrs_to_ml pos "area" [alt];
+	   "a", attrs_to_ml pos "area" attrs]
+	  [childs_to_ml pos childs]
 
-and table_to_ml attrs childs =
+and table_to_ml pos attrs childs =
   let caption, childs = extract_opt_el "caption" childs in
   let columns, childs = extract_els "colgroup" childs in
   let thead, childs = extract_el "thead" childs in
@@ -269,39 +264,39 @@ and table_to_ml attrs childs =
       "tablex"
   in
   let attrs =
-    ["columns", childs_to_ml columns;
+    ["columns", childs_to_ml pos columns;
      "thead", xml_to_ml thead;
      "tfoot", xml_to_ml tfoot;
-     "a", attrs_to_ml name attrs]
+     "a", attrs_to_ml pos name attrs]
   in
   let attrs =
     match caption with
     | Some a -> ("caption", xml_to_ml a) :: attrs
     | None -> attrs
   in
-  mkapply name
+  mkapply pos name
 	  attrs
-	  [childs_to_ml childs]
+	  [childs_to_ml pos childs]
 
-and fieldset_to_ml attrs childs = assert false
+and fieldset_to_ml pos attrs childs = assert false
 
-and datalist_to_ml attrs childs = assert false
+and datalist_to_ml pos attrs childs = assert false
 
-and optgroup_to_ml attrs childs = 
+and optgroup_to_ml pos attrs childs = 
   let label, attrs = extract_attr "label" attrs in
-  mkapply "optgroup" 
-	  ["label", attrs_to_ml "optgroup" [label];
-	  "a", attrs_to_ml "optgroup" attrs]
-	  [childs_to_ml childs]
+  mkapply pos "optgroup" 
+	  ["label", attrs_to_ml pos "optgroup" [label];
+	  "a", attrs_to_ml pos "optgroup" attrs]
+	  [childs_to_ml pos childs]
 
-and command_to_ml attrs = function
+and command_to_ml pos attrs = function
   | [] ->
     let label, attrs = extract_attr "label" attrs in
-    mkapply "command"
-	    ["label", attrs_to_ml "command" [label];
-	     "a", attrs_to_ml "command" attrs]
-	    [unit]
+    mkapply pos "command"
+	    ["label", attrs_to_ml pos "command" [label];
+	     "a", attrs_to_ml pos "command" attrs]
+	    [unit pos]
   | _ -> failwith "Must not have childs"
 
-and menu_to_ml attrs childs = assert false
+and menu_to_ml pos attrs childs = assert false
 

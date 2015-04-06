@@ -8,7 +8,7 @@ let tyxml_mapper _ =
       fun mapper expr ->
       (match expr with
        | { pexp_desc =
-	     Pexp_extension ({txt = "tyxml"; loc}, pstr)} ->
+	     Pexp_extension ({Asttypes.txt = "tyxml"; loc}, pstr)} ->
 	  (match pstr with
 	  | PStr [{ pstr_desc =
 		      Pstr_eval 
