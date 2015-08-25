@@ -1,16 +1,12 @@
-let _ = [%tyxml 
-	    {|<html>
-	        <head>
-	            <title>Hello, World!</title>
+let _ = [%tyxml {|
+<html>
+   <head>
+    <title>Hello, World!</title>
+   </head>
 
-
-
-
-
-
-		</head>
-		<body>
-			OCaml
-			<b autocomplete="on">bow</b>
-		</body>
-	      </html>|}]
+   <body>
+     OCaml
+     <b autocomplete="on">bow</b>
+   </body>
+</html>
+|}]

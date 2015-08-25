@@ -8,14 +8,14 @@ let tyxml_mapper _ =
       fun mapper expr ->
       (match expr with
        | { pexp_desc =
-	     Pexp_extension ({Asttypes.txt = "tyxml"; loc}, pstr)} ->
+	     Pexp_extension ({Asttypes.txt = "tyxml"; _}, pstr)} ->
 	  (match pstr with
 	  | PStr [{ pstr_desc =
 		      Pstr_eval 
-			({pexp_loc = loc;
+			({pexp_loc = {Location.loc_start; _};
 			  pexp_desc = Pexp_constant (Asttypes.Const_string (xml, _))}, _)
 		 }] ->
-	     Xmltoty.xmltoty (`String (0, xml))
+	     Xmltoty.xmltoty loc_start (`String (0, xml))
 	  | _ -> failwith "Usage : [%tyxml string]")
        | _ -> default_mapper.expr mapper expr)	
   }

@@ -56,7 +56,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
     | "stylesheet"
     | "tag"
     | "up" -> mkvariant pos (fmt_variant v) None
-    | other -> mkvariant pos "Other" (Some (mkstring other))
+    | other -> mkvariant pos "Other" (Some (mkstring pos other))
   in
   let bool_to_ml = function
     | "true" -> true_ pos
@@ -75,7 +75,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
        let l =
 	 split_spaces sizes
 	 |> List.map split_x
-	 |> List.map (List.map (fun x -> mkint (int_of_string x)))
+	 |> List.map (List.map (fun x -> mkint pos x))
 	 |> List.map (mktuple pos)
 	 |> mklist pos
        in
@@ -243,7 +243,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
     | "content"
     | "http_equiv"
     | "style"
-    | "property" -> mkstring value
+    | "property" -> mkstring pos value
     | "high"
     | "low"
     | "max"
@@ -252,7 +252,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
     | "input_min"
     | "optimum"
     | "step"
-    | "span" -> mkint (int_of_string value)
+    | "span" -> mkint pos value
     | "start"
     | "tabindex"
     | "cols"
@@ -264,7 +264,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
     | "colspan"
     | "rowspan"
     | "height"
-    | "width" -> mkfloat value
+    | "width" -> mkfloat pos value
     | "formaction"
     | "action"
     | "icon"
@@ -273,7 +273,7 @@ let attr_to_ml pos tag_name ((_, name), value) =
     | "cite"
     | "href"
     | "src"
-    | "data" -> mkapply pos "uri_of_string" [] [mkstring value]
+    | "data" -> mkapply pos "uri_of_string" [] [mkstring pos value]
     | "draggable"
     | "contenteditable"
     | "spellcheck" -> bool_to_ml value

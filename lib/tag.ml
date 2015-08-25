@@ -2,8 +2,8 @@ open Attr
 open Mkast
 
 type t = [
-  | `El of Xmlm.pos * Xmlm.tag * t list
-  | `Data of Xmlm.pos * string
+  | `El of Lexing.position * Xmlm.tag * t list
+  | `Data of Lexing.position * string
 ]
 
 let tag_name (((_, name), _) : Xmlm.tag) = name
@@ -37,7 +37,7 @@ let rec xml_to_ml ?input = function
   | `El (pos, (((_, name),_) as tag), childs) ->
      tag_to_ml pos tag childs
   | `Data (pos, s) ->
-     mkapply pos "pcdata" [] [mkstring s]
+     mkapply pos "pcdata" [] [mkstring pos s]
 
 and tag_to_ml pos ((_, name), attrs) childs =
   let fun_to_ml =
