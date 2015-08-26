@@ -7,7 +7,7 @@ let build_start_loc start_loc (y, x) =
   Lexing.{start_loc with pos_lnum; pos_cnum}
 
 let xmltoty loc source =
-  let input = Xmlm.make_input source in
+  let input = Xmlm.make_input ~strip:true source in
   let el tag childs = 
     `El (build_start_loc loc (Xmlm.pos input), tag, childs)
   in
